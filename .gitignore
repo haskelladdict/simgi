@@ -6,6 +6,6 @@ src/*.swp
 test/*.o
 test/*.hi
 test/*.swp
-average*
+average
 RpnStackTest
 check_deviation

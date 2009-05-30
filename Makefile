@@ -1,7 +1,7 @@
 # Copyright 2009 Markus Dittrich <haskelladdict@users.sourceforge.net>
 # Distributed under the terms of the GNU General Public License v3
 
-VERSION=0.1
+VERSION=0.2
 DESTDIR=
 prefix=/usr
 mandir=$(DESTDIR)$(prefix)/share/man/man1
@@ -17,7 +17,7 @@ OBJECTS = src/simgi.hs src/CommandLine.hs src/Engine.hs  \
 	  src/PrettyPrint.hs src/RpnParser.hs src/RpnCalc.hs \
 	  src/RpnData.hs src/TokenParser.hs 
 
-all: simgi
+all: debug
 
 simgi: $(OBJECTS) 
 	ghc -i./Models -i./src $(GHC_FLAGS_RELEASE) --make src/simgi.hs

@@ -1,0 +1,12 @@
+syntax: glob
+src/*.o
+src/*.hi
+src/simgi
+src/*.swp
+test/*.o
+test/*.hi
+test/RpnStackTest
+test/*.swp
+average*
+RpnStackTest*
+check_deviation*

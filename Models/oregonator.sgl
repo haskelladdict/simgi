@@ -1,0 +1,28 @@
+{-----------------------------------------------------
+
+  this is the input deck for the oregonator model 
+  (C) 2009 Markus Dittrich
+
+------------------------------------------------------}
+
+def parameters
+  time       = 50.0
+  outputIter = 50000
+  outputFreq = 500
+  systemVol  = nil  -- interpret rates as propensities
+  outputFile = "oregonator_output.dat"
+end
+
+def molecules
+  x 500
+  y 1000
+  z 2000  
+end
+
+def reactions
+  y      -> x         { 2.0   }
+  x + y  -> nil       { 0.1   }
+  x      -> 2x + z    { 104.0 }
+  2x     -> nil       { 0.016 }
+  z      -> y         { 26.0  }
+end 

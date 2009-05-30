@@ -1,0 +1,25 @@
+{-----------------------------------------------------
+
+  this is the input deck for the oregonator model 
+  (C) 2009 Markus Dittrich
+
+------------------------------------------------------}
+
+def parameters
+  time       = 1.0e-4
+  systemVol  = 1.25e-19
+  outputIter = 50000
+  outputFreq = 10
+  outputFile = "reversible.dat"
+end
+
+def molecules
+  a 1000
+  b 1000
+  c 0
+end
+
+def reactions
+  a + b -> c  { 1e6*10 }
+  c -> a + b  { 1e5 }
+end 

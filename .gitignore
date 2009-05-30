@@ -8,4 +8,4 @@ test/*.hi
 test/*.swp
 average*
 RpnStackTest
-check_deviation*
+check_deviation

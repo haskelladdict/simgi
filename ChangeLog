@@ -1,3 +1,8 @@
+2009-06-02 Markus Dittrich <haskelladdict@users.sourceforge.net>
+
+      * 0.1.1 release (identical to 0.1 with only a few minor
+	changes needed for uploading to Hackage).
+
 2009-05-30 Markus Dittrich <haskelladdict@users.sourceforge.net>
 
       * initial commit

@@ -28,7 +28,7 @@ Introduction
 based on Gillspie's [1]_ direct method. **simgi** is implemented in 
 pure Haskell, command line driven and comes with a flexible simulation
 description language called `Simgi Model Generation Language (SGL)`_.
-More information is available from the `project summary page <http://sourceforge.net/projects/simgi>`_
+More information is available from the `project summary page <http://sourceforge.net/projects/simgi>`_.
 
 
 Status 
@@ -48,7 +48,7 @@ Nevertheless, for small systems (such as the examples in the
 Download
 --------
 
-The current release of simgi can be downloaded `here <http://sourceforge.net/project/platformdownload.php?group_id=260550>`_
+The current release of simgi can be downloaded `here <http://sourceforge.net/project/platformdownload.php?group_id=260550>`_.
 
 
 Compilation

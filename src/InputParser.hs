@@ -43,6 +43,7 @@ input_parser = whiteSpace
                *> many ( choice [ try parse_parameter_def
                                 , try parse_molecule_def
                                 , try parse_reaction_def
+                            --    , try parse_event_def
                                 ])
                *> eof
                >> getState

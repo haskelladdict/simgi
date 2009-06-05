@@ -22,10 +22,11 @@
 module GenericModel ( defaultRateList
                     , GillespieState
                     , initialModelState
+                    , MathExpr(..)
                     , ModelState(..)
                     , MoleculeMap
                     , Output(..)
-                    , Rate(..)
+                    , Rate
                     , RateList
                     , Reaction(..)
                     ) where
@@ -45,10 +46,14 @@ import RpnData
 type MoleculeMap = M.Map String Int
 
 
--- | data type for reaction rates which can either be a Double
--- or an RpnStack describing a function to compute the rate
--- at run time
-data Rate = Constant Double | Function RpnStack
+-- | generic data type for a mathematical expression. This could
+-- either be a constant or an expression inside an RpnStack
+data MathExpr = Constant Double | Function RpnStack
+
+
+-- | data type for reaction rates which are of type MathExpr
+type Rate = MathExpr
+
 
 -- | List of reactions and corresponding rates
 type RateList    = [Double]
@@ -57,20 +62,49 @@ defaultRateList :: RateList
 defaultRateList = [] 
 
 
--- | for each elementary reaction i we need to provide 
---   1) the reaction rate c_i or rate function 
---   2) the reaction order (first, second, ...)
---   2) aList describing which molecular species are participating
---      in a reaction (needed for computing h_mu in Gillespie's 
---      notation) and a function mapping a molecule count to the
---      proper h_mu value (needed e.g. for cases where we have
---      2X terms where h_my would be 0.5*X*(X-1).
---   3) a list of tuple (i,j) describing that the count of molecule
---      i changes by j should this reaction take place
+-- | for each elementary reaction i we need to keep track of
+--   
+--   rate: the reaction rate c_i or rate function 
+--   
+--   aList: description of which molecular species are participating
+--     in a reaction (needed for computing h_mu in Gillespie's 
+--     notation) and a function mapping a molecule count to the
+--     proper h_mu value (needed e.g. for cases where we have
+--     2X terms where h_mu would be 0.5*X*(X-1).
+--   
+--   react: a list of tuples (i,j) describing that the reaction
+--     changes the count of molecule i by j 
+--
 data Reaction = Reaction { rate       :: Rate
                          , aList      :: [(String,Double -> Double)]
                          , react      :: [(String,Int)]
                          }
+
+
+-- | data type describing an action triggered during an event
+-- It consists of a String tracking the molecule affected
+-- as well as a mathematic expression describing the new molecule
+-- count for this molecule
+data EventAction = EventAction { name   :: String
+                               , act    :: MathExpr
+                               }
+
+
+-- | data type keeping track of possible events occuring during
+-- the simulation. Each event consist of a
+--
+--   <trigger>: numerical expression that triggers the event
+--     when equal to 0 
+-- 
+--   <action>: an expression of the form 
+--
+--              mol = <numerical expression>
+--
+-- changing the number of mol by <numerical expression>
+--
+data Event = Event { trigger :: RpnStack
+                   , action  :: EventAction
+                   }
 
 
 -- | Our model state

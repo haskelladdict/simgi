@@ -20,6 +20,8 @@
 
 -- | data structures needed for defining a stochastic model
 module GenericModel ( defaultRateList
+                    , Event(..)
+                    , EventAction(..)
                     , GillespieState
                     , initialModelState
                     , MathExpr(..)
@@ -85,8 +87,8 @@ data Reaction = Reaction { rate       :: Rate
 -- It consists of a String tracking the molecule affected
 -- as well as a mathematic expression describing the new molecule
 -- count for this molecule
-data EventAction = EventAction { name   :: String
-                               , act    :: MathExpr
+data EventAction = EventAction { evtName   :: String
+                               , avtAct    :: MathExpr
                                }
 
 
@@ -102,8 +104,8 @@ data EventAction = EventAction { name   :: String
 --
 -- changing the number of mol by <numerical expression>
 --
-data Event = Event { trigger :: RpnStack
-                   , action  :: EventAction
+data Event = Event { evtTrigger :: RpnStack
+                   , evtAction  :: EventAction
                    }
 
 
@@ -112,6 +114,7 @@ data ModelState = ModelState { molCount    :: MoleculeMap
                              , rates       :: RateList
                              , reactions   :: [Reaction]
                              , randNums    :: [Double]
+                             , events      :: [Event]
                              , systemVol   :: Double
                              , currentTime :: Double
                              , currentIter :: Integer
@@ -140,6 +143,7 @@ initialModelState = ModelState { molCount    = M.empty
                                , rates       = []
                                , reactions   = []
                                , randNums    = []
+                               , events      = []
                                , systemVol   = 1.0
                                , currentTime = 0.0
                                , currentIter = 0

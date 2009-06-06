@@ -43,7 +43,7 @@ input_parser = whiteSpace
                *> many ( choice [ try parse_parameter_def
                                 , try parse_molecule_def
                                 , try parse_reaction_def
-                        --        , try parse_event_def
+                                , try parse_event_def
                                 ])
                *> eof
                >> getState
@@ -51,8 +51,36 @@ input_parser = whiteSpace
 
 
 -- | parser for event definitions
---parse_event_def :: CharParser ModelState ()
---parse_event_def = between
+parse_event_def :: CharParser ModelState ()
+parse_event_def = parse_def_block "events" 
+                    (parse_events `sepBy` whiteSpace)
+                  *> pure ()
+               <?> "event definitions" 
+
+
+-- | parser for individual events
+parse_events :: CharParser ModelState ()
+parse_events = parse_trigger *> whiteSpace *> reservedOp "=>" 
+               *> parse_action
+               *> pure ()
+            <?> "reaction event"
+
+
+-- | parser for an event trigger
+parse_trigger :: CharParser ModelState RpnStack
+parse_trigger = braces parse_infix_to_rpn
+             <?> "event trigger"
+
+
+-- | parser for an event action
+parse_action :: CharParser ModelState ()
+parse_action = braces parse_action_expression
+            <?> "event action"
+
+
+-- | parser for an event action expression
+parse_action_expression :: CharParser ModelState ()
+parse_action_expression = molname *> whiteSpace *> reservedOp "="
 
 
 
@@ -202,8 +230,8 @@ parse_reaction = setup_reaction
       let 
         action  = create_react r p
         hFactor = create_hFact r 
-        theRate = if (vol < 0.0)    -- no rate conversion for systemVol = nil
-                    then cin
+        theRate = if (vol < 0.0) -- no rate conversion for 
+                    then cin     -- systemVol = nil
                     else convert_rate cin (M.size r) vol
       in 
         Reaction { rate       = theRate

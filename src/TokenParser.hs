@@ -105,7 +105,7 @@ keywords = [ "def", "molecules", "reactions", "time", "outputIter"
            ]
 
 operators :: [String]
-operators = ["+","->","::","=","{","}"]
+operators = ["+","->","::","=","{","}","=>"]
 
 
 -- | function generating a token parser based on a 

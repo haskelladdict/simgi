@@ -43,18 +43,23 @@ input_parser = whiteSpace
                *> many ( choice [ try parse_parameter_def
                                 , try parse_molecule_def
                                 , try parse_reaction_def
-                            --    , try parse_event_def
+                        --        , try parse_event_def
                                 ])
                *> eof
                >> getState
             <?> "main parser"
 
 
+-- | parser for event definitions
+--parse_event_def :: CharParser ModelState ()
+--parse_event_def = between
+
+
+
 -- | parser for simulation parameters
 parse_parameter_def :: CharParser ModelState ()
-parse_parameter_def = between (reserved "def" *> reserved "parameters")
-                              (reserved "end")
-                              (parse_parameters `sepBy` whiteSpace) 
+parse_parameter_def = parse_def_block "parameters" 
+                        (parse_parameters `sepBy` whiteSpace)
                       *> pure ()
                    <?> "parameter definitions"
 
@@ -66,7 +71,8 @@ parse_parameters = parse_time
                 <|> parse_outputIter
                 <|> parse_outputFreq
                 <|> parse_systemVol
-                <?> "time, outputIter, systemVol, outputFreq, outputFile"
+                <?> "time, outputIter, systemVol, outputFreq,\
+                    \outputFile"
 
 
 -- | parse the simulation time specs
@@ -135,9 +141,7 @@ parse_outputFreq = join (updateState <$> insert_outputFreq
 -- | parser for molecule definitions
 parse_molecule_def :: CharParser ModelState ()
 parse_molecule_def = join ( updateState <$> insert_molecules <$> 
-  between (reserved "def" *> reserved "molecules")
-          (reserved "end")
-          (parse_molecules `sepBy` whiteSpace) )
+  parse_def_block "molecules" (parse_molecules `sepBy` whiteSpace) )
                   <?> "molecule definitions"
 
   where
@@ -172,9 +176,7 @@ not_end p = p >>= \name -> case name /= "end" of
 -- | parser for reaction definitions
 parse_reaction_def :: CharParser ModelState ()
 parse_reaction_def = join ( updateState <$> insert_reactions <$>
-                     between (reserved "def" *> reserved "reactions")
-                             (reserved "end")
-                             (parse_reaction `sepBy` whiteSpace) )
+  parse_def_block "reactions" (parse_reaction `sepBy` whiteSpace) )
                   <?> "reaction definitions"
   
   where
@@ -316,3 +318,16 @@ parse_positive_number = naturalOrFloat
                                 else pzero
 
   <?> "unsigned integer or double"         
+
+
+-- | parser for a def block structure
+parse_def_block :: String -> CharParser ModelState a 
+                -> CharParser ModelState a
+parse_def_block blockName parser = 
+
+  between (reserved "def" *> reserved blockName )
+          (reserved "end")
+          (parser)
+  <?> "parameter definitions"
+
+

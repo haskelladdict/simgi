@@ -1,11 +1,8 @@
 syntax: glob
-src/*.o
-src/*.hi
 src/simgi
-src/*.swp
-test/*.o
-test/*.hi
-test/*.swp
+*.o
+*.hi
+*.swp
 average
 RpnStackTest
 check_deviation

@@ -58,6 +58,7 @@ parse_event_def = parse_def_block "events"
                <?> "event definitions" 
 
 
+
 -- | parser for individual events
 parse_events :: CharParser ModelState ()
 parse_events = parse_trigger *> whiteSpace *> reservedOp "=>" 
@@ -66,16 +67,19 @@ parse_events = parse_trigger *> whiteSpace *> reservedOp "=>"
             <?> "reaction event"
 
 
+
 -- | parser for an event trigger
 parse_trigger :: CharParser ModelState RpnStack
 parse_trigger = braces parse_infix_to_rpn
              <?> "event trigger"
 
 
+
 -- | parser for an event action
 parse_action :: CharParser ModelState ()
 parse_action = braces parse_action_expression
             <?> "event action"
+
 
 
 -- | parser for an event action expression
@@ -92,6 +96,7 @@ parse_parameter_def = parse_def_block "parameters"
                    <?> "parameter definitions"
 
 
+
 -- | parse the individual parameters
 parse_parameters :: CharParser ModelState ()
 parse_parameters = parse_time
@@ -103,6 +108,7 @@ parse_parameters = parse_time
                     \outputFile"
 
 
+
 -- | parse the simulation time specs
 parse_time :: CharParser ModelState ()
 parse_time = join (updateState <$> insert_time 
@@ -111,6 +117,7 @@ parse_time = join (updateState <$> insert_time
   
   where
     insert_time t state = state { maxTime = t }
+
 
 
 -- | parse the value of the simulated system volume
@@ -129,6 +136,7 @@ parse_systemVol = join (updateState <$> insert_volume
     insert_volume vol state = state { systemVol = vol }
 
 
+
 -- | parse the name of the output file 
 -- accepts paths but will NOT create any of the parents
 parse_outputFile :: CharParser ModelState ()
@@ -140,9 +148,11 @@ parse_outputFile = join (updateState <$> insert_filename
     insert_filename name state = state { outfileName = name }
 
 
+
 -- | parse a filename
 parse_filename :: CharParser ModelState String
 parse_filename = stringLiteral
+
 
 
 
@@ -156,6 +166,7 @@ parse_outputIter = join (updateState <$> insert_outputIter
     insert_outputIter i state = state { maxIter = i }
 
 
+
 -- | parse the output iteration specification if present
 parse_outputFreq :: CharParser ModelState ()
 parse_outputFreq = join (updateState <$> insert_outputFreq
@@ -164,6 +175,7 @@ parse_outputFreq = join (updateState <$> insert_outputFreq
 
   where
     insert_outputFreq i state = state { outputFreq = i }
+
 
 
 -- | parser for molecule definitions
@@ -178,11 +190,13 @@ parse_molecule_def = join ( updateState <$> insert_molecules <$>
       state { molCount = M.fromList theMols }
 
 
+
 -- | parse a molecule name and the number of molecules of this type
 parse_molecules :: CharParser ModelState (String,Int)
 parse_molecules = make_molecule <$> (try molname) <*> integer
   where
     make_molecule mol aCount = (mol,fromInteger aCount)
+
 
 
 -- | parser for a molecule name 
@@ -193,12 +207,14 @@ molname = not_end ((:) <$> letter <*> many (alphaNum <?> ""))
         <?> "molecule name" 
 
 
+
 -- | short checker making sure we don't scan beyond the "end" statement
 -- of a block 
 not_end :: CharParser ModelState String -> CharParser ModelState String
 not_end p = p >>= \name -> case name /= "end" of
                              True  -> pure name
                              False -> pzero
+
 
 
 -- | parser for reaction definitions
@@ -210,6 +226,7 @@ parse_reaction_def = join ( updateState <$> insert_reactions <$>
   where
     insert_reactions :: [Reaction] -> ModelState -> ModelState
     insert_reactions reacts state = state { reactions = reacts }
+
 
 
 -- | parser for a single reaction specification of the type
@@ -266,8 +283,8 @@ parse_reaction = setup_reaction
 
 
     -- | create the list containing the h factors
-    -- WARNING/FIXME: Currently, things are ill defined if the number of
-    -- molecules for species A is below the stoichiometric reactant
+    -- WARNING/FIXME: Currently, things are ill defined if the number 
+    -- of molecules for species A is below the stoichiometric reactant
     -- coefficient; i.e. if #A = 2 then 3A -> ... does not make sense
     create_hFact :: (M.Map String Int) -> [(String, Double -> Double)]
     create_hFact     = create_hFact_h [] . M.assocs  
@@ -291,20 +308,8 @@ parse_reaction = setup_reaction
 -- constant of a full blown infix math expression.
 -- Reaction rates must be enclosed by colons ":"
 parse_rate :: CharParser ModelState Rate
-parse_rate = (try parse_constant_rate) <|> parse_rate_function
-          <?> "rate constant or rate function"
+parse_rate = parse_expression
 
-
--- | parser for a simple rate constant expression
-parse_constant_rate :: CharParser ModelState Rate
-parse_constant_rate = Constant <$> braces parse_number
-                   <?> "rate constant" 
-
-
--- | parser for a rate function
-parse_rate_function :: CharParser ModelState Rate
-parse_rate_function = Function <$> braces parse_infix_to_rpn
-                   <?> "rate function" 
 
 
 -- | parse list of reactants/products of reaction
@@ -322,6 +327,7 @@ parse_react_prod = (reserved "nil" *> pure (M.empty))
     make_tuple x y = (y, fromInteger x)
 
 
+
 -- | parse a number, can be used with 'many' and other parser
 -- combinators; integers are automatically promoted to double
 parse_number :: CharParser ModelState Double
@@ -331,6 +337,7 @@ parse_number = converter <$> naturalOrFloat
     converter val = case val of
                       Left i  -> (fromInteger i)
                       Right x -> x
+
 
 
 -- | parse a positive number, can be used with 'many' and other 
@@ -348,6 +355,7 @@ parse_positive_number = naturalOrFloat
   <?> "unsigned integer or double"         
 
 
+
 -- | parser for a def block structure
 parse_def_block :: String -> CharParser ModelState a 
                 -> CharParser ModelState a
@@ -357,5 +365,28 @@ parse_def_block blockName parser =
           (reserved "end")
           (parser)
   <?> "parameter definitions"
+
+
+
+-- | parse either a constant float or a complex function 
+-- expression evaluation to a float at runtime
+parse_expression :: CharParser ModelState MathExpr
+parse_expression = (try parse_constant_expression) 
+                <|> parse_function_expression
+                <?> "constant or function expression"
+
+
+
+-- | parser for a simple rate constant expression
+parse_constant_expression :: CharParser ModelState MathExpr
+parse_constant_expression = Constant <$> braces parse_number
+                         <?> "rate constant" 
+
+
+
+-- | parser for a rate function
+parse_function_expression :: CharParser ModelState MathExpr
+parse_function_expression = Function <$> braces parse_infix_to_rpn
+                         <?> "rate function" 
 
 

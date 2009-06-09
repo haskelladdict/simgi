@@ -79,7 +79,7 @@ parse_trigger = braces parse_infix_to_rpn
 
 -- | parser for an event action
 parse_action :: CharParser ModelState EventAction
-parse_action = parse_action_expression
+parse_action = braces parse_action_expression
             <?> "event action"
 
 
@@ -312,7 +312,7 @@ parse_reaction = setup_reaction
 -- constant of a full blown infix math expression.
 -- Reaction rates must be enclosed by colons ":"
 parse_rate :: CharParser ModelState Rate
-parse_rate = parse_expression
+parse_rate = braces parse_expression
 
 
 
@@ -374,23 +374,27 @@ parse_def_block blockName parser =
 
 -- | parse either a constant float or a complex function 
 -- expression evaluation to a float at runtime
+-- NOTE: It is important that we parse for a function
+-- expression with try and not the constant expression
+-- otherwise we get incomplete matches for things like 
+-- 10*x+y.
 parse_expression :: CharParser ModelState MathExpr
-parse_expression = (try parse_constant_expression) 
-                <|> parse_function_expression
+parse_expression = (try parse_function_expression) 
+                <|> parse_constant_expression
                 <?> "constant or function expression"
 
 
 
 -- | parser for a simple rate constant expression
 parse_constant_expression :: CharParser ModelState MathExpr
-parse_constant_expression = Constant <$> braces parse_number
+parse_constant_expression = Constant <$> parse_number
                          <?> "rate constant" 
 
 
 
 -- | parser for a rate function
 parse_function_expression :: CharParser ModelState MathExpr
-parse_function_expression = Function <$> braces parse_infix_to_rpn
+parse_function_expression = Function <$> parse_infix_to_rpn
                          <?> "rate function" 
 
 

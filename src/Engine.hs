@@ -25,12 +25,14 @@ module Engine ( create_initial_output
               , module GenericModel
               ) where
 
+
 -- imports
 import Control.Monad.State
 import qualified Data.Map as M
 import Prelude
 import Text.Printf
 import System.IO
+
 
 -- local imports
 import ExtraFunctions
@@ -64,6 +66,7 @@ update_state dataDumpIter state@(ModelState { currentTime = t
   (t, state { maxIter = it + dataDumpIter, outputList = [] })
 
 
+
 -- | actual compute loop
 run_gillespie :: GillespieState [Output]
 run_gillespie = get
@@ -78,6 +81,7 @@ run_gillespie = get
                            , outputFreq  = freq
                            , outputList  = output
                            }) ->
+
 
     -- compute and update the next state
     let out_rates  = compute_rates in_reacts in_mols t []
@@ -98,7 +102,8 @@ run_gillespie = get
 
     -- this prevents simulation from getting stuck
     -- FIXME: We need to come up with mechanism to propagate
-    -- error message corresponding to cases such as this one to the user!
+    -- error message corresponding to cases such as this one 
+    -- to the user!
     if (is_equal tau 0.0)
       then let finalState = newState { currentTime = t_max } in
            put finalState >> return output
@@ -106,6 +111,7 @@ run_gillespie = get
         if ( it_max == it || t >= t_max )
           then return output
           else put newState >> run_gillespie
+
 
 
 -- | generate a new Output data structure based on the current
@@ -142,14 +148,16 @@ adjust_molcount theMap rs mID =
                                   adjustMap rands m_new
 
 
+
 -- | pick the \mu value for the randomly selected next reaction 
 -- reaction to happen
 get_mu :: Double -> [Double] -> Int
 get_mu val = length . takeWhile ( <val ) . scanl1 (+) 
 
-                 
--- | compute the current value for the reaction probabilities based on 
--- the number of molecules and reaction rates
+
+
+-- | compute the current value for the reaction probabilities based 
+-- on the number of molecules and reaction rates
 compute_rates :: [Reaction] -> MoleculeMap -> Double 
               -> RateList -> RateList
 compute_rates [] _ _ rts = reverse rts
@@ -168,6 +176,7 @@ compute_rates ((Reaction {rate = c_in, aList = a_in }):rs)
     a_new = (*) mult 
 
 
+
 -- | initialize the output data structure
 create_initial_output :: ModelState -> Output
 create_initial_output (ModelState { molCount = initialMols }) = 
@@ -176,6 +185,7 @@ create_initial_output (ModelState { molCount = initialMols }) =
          , time      = 0.0
          , mols      = initialMols
          }
+
 
 
 -- | set up the initial state
@@ -188,6 +198,7 @@ create_initial_state state rand output =
         , currentIter = 1
         , outputList  = [output]
         }
+
 
 
 -- | basic routine writing the simulation output to stdout

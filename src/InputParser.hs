@@ -34,7 +34,7 @@ import GenericModel
 import RpnData
 import RpnParser
 
--- import Debug.Trace
+--import Debug.Trace
 
 
 -- | main parser entry point

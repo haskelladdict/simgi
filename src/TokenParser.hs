@@ -23,6 +23,7 @@ module TokenParser ( module Control.Applicative
                    , module Text.ParserCombinators.Parsec
                    , braces
                    , builtinFunctions
+                   , colon
                    , comma
                    , charLiteral
                    , float
@@ -166,6 +167,11 @@ reserved = PT.reserved lexer
 -- | token parser for whitespace
 whiteSpace :: CharParser st ()
 whiteSpace = PT.whiteSpace lexer
+
+
+-- | token parser for colon
+colon:: CharParser st String
+colon = PT.colon lexer
 
 
 -- | token parser for semicolon

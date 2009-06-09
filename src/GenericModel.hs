@@ -88,7 +88,7 @@ data Reaction = Reaction { rate       :: Rate
 -- as well as a mathematic expression describing the new molecule
 -- count for this molecule
 data EventAction = EventAction { evtName   :: String
-                               , avtAct    :: MathExpr
+                               , evtAct    :: MathExpr
                                }
 
 
@@ -105,7 +105,7 @@ data EventAction = EventAction { evtName   :: String
 -- changing the number of mol by <numerical expression>
 --
 data Event = Event { evtTrigger :: RpnStack
-                   , evtAction  :: EventAction
+                   , evtActions :: [EventAction]
                    }
 
 

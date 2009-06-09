@@ -65,7 +65,7 @@ parse_event_def = join ( updateState <$> insert_events <$>
 -- | parser for individual events
 parse_events :: CharParser ModelState Event
 parse_events = Event <$> (parse_trigger <* whiteSpace) 
-                <*> (reservedOp "=>" *> parse_action)
+                <*> (reservedOp "=>" *> parse_actions)
             <?> "reaction event"
 
 
@@ -78,17 +78,22 @@ parse_trigger = braces parse_infix_to_rpn
 
 
 -- | parser for an event action
-parse_action :: CharParser ModelState EventAction
-parse_action = braces parse_action_expression
-            <?> "event action"
+parse_actions :: CharParser ModelState [EventAction]
+parse_actions = braces parse_action_expressions
+            <?> "event action block"
 
 
+-- | parser for a list of action expressions
+parse_action_expressions :: CharParser ModelState [EventAction]
+parse_action_expressions = 
+  parse_single_action_expression `sepEndBy` semi 
+                       <?> "event action"
 
--- | parser for an event action expression
-parse_action_expression :: CharParser ModelState EventAction
-parse_action_expression = EventAction <$> (molname <* whiteSpace) 
-                           <*> (reservedOp "=" *> parse_expression)
-                       <?> "event action expression"
+-- | parser for a single event action expression
+parse_single_action_expression :: CharParser ModelState EventAction
+parse_single_action_expression = EventAction <$> 
+  (molname <* whiteSpace) <*> (reservedOp "=" *> parse_expression)
+                              <?> "event action expression"
 
 
 

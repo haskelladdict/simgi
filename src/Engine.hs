@@ -39,7 +39,7 @@ import ExtraFunctions
 import GenericModel
 import RpnCalc
 
--- import Debug.Trace
+--import Debug.Trace
 
 -- | main simulation driver
 -- the simulator either stops when
@@ -60,10 +60,11 @@ gillespie_driver handle simTime dmpIter state =
 
 -- | updates the state for the next iteration
 update_state :: Integer -> ModelState -> (Double,ModelState)    
-update_state dataDumpIter state@(ModelState { currentTime = t 
-                                            , maxIter     = it
-                                            }) =
-  (t, state { maxIter = it + dataDumpIter, outputList = [] })
+update_state dataDumpIter 
+             state@(ModelState { currentTime = t 
+                               , maxIter     = it
+                               }) 
+  = (t, state { maxIter = it + dataDumpIter, outputList = [] })
 
 
 
@@ -74,6 +75,7 @@ run_gillespie = get
   >>= \inState@(ModelState { molCount    = in_mols
                            , reactions   = in_reacts
                            , randNums    = (r1:r2:randRest)
+                           , events      = molEvents
                            , currentTime = t
                            , currentIter = it
                            , maxTime     = t_max
@@ -90,8 +92,9 @@ run_gillespie = get
         t_new      = t+tau
         mu         = get_mu (a_0*r2) out_rates
         out_mols   = adjust_molcount in_mols in_reacts mu
+        evt_mols   = handle_events molEvents out_mols t_new
         new_output = generate_output freq it t_new out_mols output
-        newState   = inState { molCount    = out_mols
+        newState   = inState { molCount    = evt_mols
                              , rates       = out_rates
                              , randNums    = randRest
                              , currentTime = t_new
@@ -111,6 +114,78 @@ run_gillespie = get
         if ( it_max == it || t >= t_max )
           then return output
           else put newState >> run_gillespie
+
+
+
+-- | handle all user defined events and return the adjusted
+-- number of molecules
+-- WARNING: We should probably the Event Stack before we use
+-- it to compute stuff; at least make sure molecule exist
+handle_events :: [Event] -> MoleculeMap -> Double -> MoleculeMap
+handle_events [] molMap     _ = molMap
+handle_events (x:xs) molMap t = 
+  let
+    newMolMap = handle_single_event x molMap t
+  in
+    handle_events xs newMolMap t
+
+
+-- | handle a single user event
+handle_single_event :: Event -> MoleculeMap -> Double -> MoleculeMap
+handle_single_event evt molMap t =
+  
+  let
+    trigger    = evtTrigger evt
+    actions    = evtActions evt
+    triggerVal = rpn_compute molMap t trigger
+  in 
+    if is_equal triggerVal 0.0 
+      then execute_actions actions molMap t 
+      else molMap
+
+
+
+-- | handle all actions associated with a user event
+execute_actions :: [EventAction] -> MoleculeMap -> Double 
+                -> MoleculeMap
+execute_actions [] molMap _     = molMap
+execute_actions (x:xs) molMap t =
+  let
+    newMolMap = execute_single_action x molMap t
+  in
+    execute_actions xs newMolMap t
+
+
+
+-- | handle a single event triggered action
+execute_single_action :: EventAction -> MoleculeMap -> Double
+                -> MoleculeMap
+execute_single_action eventAction molMap t =
+  let
+    name   = evtName eventAction
+    action = evtAct eventAction
+  in
+    case action of
+      Constant c   -> adjust_mol_count name (c_to_int c) molMap
+
+      Function rpn -> let
+                        newCount = c_to_int $ rpn_compute molMap t rpn
+                      in
+                        adjust_mol_count name newCount molMap
+  
+      where
+        c_to_int :: Double -> Int
+        c_to_int = floor 
+
+
+
+-- | adjust the count of a certain molecule to a new value
+adjust_mol_count :: String -> Int -> MoleculeMap -> MoleculeMap
+adjust_mol_count key val molMap = 
+ -- let
+ --   intVal = floor val :: Int
+ -- in
+    M.insert key val molMap
 
 
 

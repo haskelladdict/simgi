@@ -48,13 +48,16 @@ import RpnData
 type MoleculeMap = M.Map String Int
 
 
+
 -- | generic data type for a mathematical expression. This could
 -- either be a constant or an expression inside an RpnStack
 data MathExpr = Constant Double | Function RpnStack
 
 
+
 -- | data type for reaction rates which are of type MathExpr
 type Rate = MathExpr
+
 
 
 -- | List of reactions and corresponding rates
@@ -62,6 +65,7 @@ type RateList    = [Double]
 
 defaultRateList :: RateList
 defaultRateList = [] 
+
 
 
 -- | for each elementary reaction i we need to keep track of
@@ -83,6 +87,7 @@ data Reaction = Reaction { rate       :: Rate
                          }
 
 
+
 -- | data type describing an action triggered during an event
 -- It consists of a String tracking the molecule affected
 -- as well as a mathematic expression describing the new molecule
@@ -90,6 +95,7 @@ data Reaction = Reaction { rate       :: Rate
 data EventAction = EventAction { evtName   :: String
                                , evtAct    :: MathExpr
                                }
+
 
 
 -- | data type keeping track of possible events occuring during
@@ -107,6 +113,7 @@ data EventAction = EventAction { evtName   :: String
 data Event = Event { evtTrigger :: RpnStack
                    , evtActions :: [EventAction]
                    }
+
 
 
 -- | Our model state
@@ -128,12 +135,14 @@ data ModelState = ModelState { molCount    :: MoleculeMap
 type GillespieState a = State ModelState a
 
 
+
 -- | data structure for keeping track of our output
 data Output = Output { iteration :: Integer
                      , time      :: Double
                      , mols      :: MoleculeMap 
                      }
   deriving(Show)
+
 
 
 -- | initial model state to be partially filled by the 

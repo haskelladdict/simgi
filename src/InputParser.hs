@@ -83,11 +83,13 @@ parse_actions = braces parse_action_expressions
             <?> "event action block"
 
 
+
 -- | parser for a list of action expressions
 parse_action_expressions :: CharParser ModelState [EventAction]
 parse_action_expressions = 
   parse_single_action_expression `sepEndBy` semi 
                        <?> "event action"
+
 
 -- | parser for a single event action expression
 parse_single_action_expression :: CharParser ModelState EventAction

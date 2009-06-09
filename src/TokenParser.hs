@@ -65,6 +65,7 @@ instance Applicative (GenParser s a) where
   (<*>) = ap
 
 
+
 -- |Alternative instance for MonadPlus
 instance Alternative (GenParser s a) where
   empty = mzero
@@ -99,6 +100,7 @@ builtinFunctions = [ ("sqrt",sqrt)
                    ]
 
 
+
 -- | all other keywords that are not regular functions
 keywords :: [String]
 keywords = [ "def", "molecules", "reactions", "time", "outputIter"
@@ -107,6 +109,7 @@ keywords = [ "def", "molecules", "reactions", "time", "outputIter"
 
 operators :: [String]
 operators = ["+","->","::","=","{","}","=>"]
+
 
 
 -- | function generating a token parser based on a 
@@ -120,13 +123,17 @@ lexer  = PT.makeTokenParser
                       } )
 
 
+
 -- | token parser for parenthesis
 parens :: CharParser st a -> CharParser st a
 parens = PT.parens lexer
 
+
+
 -- | token parser for parenthesis
 braces :: CharParser st a -> CharParser st a
 braces = PT.braces lexer
+
 
 
 -- | token parser for Integer
@@ -134,9 +141,11 @@ integer :: CharParser st Integer
 integer = PT.integer lexer
 
 
+
 -- | token parser for Char
 stringLiteral :: CharParser st String
 stringLiteral = PT.stringLiteral lexer
+
 
 
 -- | token parser for Char
@@ -144,9 +153,11 @@ charLiteral :: CharParser st Char
 charLiteral = PT.charLiteral lexer
 
 
+
 -- | token parser for Double
 float :: CharParser st Double
 float = PT.float lexer
+
 
 
 -- | token parser for Either Integer Double
@@ -154,9 +165,11 @@ naturalOrFloat :: CharParser st (Either Integer Double)
 naturalOrFloat = PT.naturalOrFloat lexer
 
 
+
 -- | token parser for keywords
 reservedOp :: String -> CharParser st ()
 reservedOp = PT.reservedOp lexer
+
 
 
 -- | token parser for keywords
@@ -164,9 +177,11 @@ reserved :: String -> CharParser st ()
 reserved = PT.reserved lexer
 
 
+
 -- | token parser for whitespace
 whiteSpace :: CharParser st ()
 whiteSpace = PT.whiteSpace lexer
+
 
 
 -- | token parser for colon
@@ -174,14 +189,17 @@ colon:: CharParser st String
 colon = PT.colon lexer
 
 
+
 -- | token parser for semicolon
 semi :: CharParser st String
 semi = PT.semi lexer
 
 
+
 -- | token parser for comma
 comma :: CharParser st String
 comma = PT.comma lexer
+
 
 
 -- | token parser for symbol

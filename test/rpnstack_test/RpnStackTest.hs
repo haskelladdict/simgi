@@ -79,6 +79,7 @@ simpleTests =
 variableTests :: [TestCase]
 variableTests =
   [ ("3*x", 3000)
+  , ("x", 1000)
   , ("sqrt(x)^2", 1000)
   , ("x+y*z", 1000)
   , ("x + y *   z", 1000)

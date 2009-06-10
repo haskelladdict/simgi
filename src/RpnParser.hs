@@ -41,6 +41,7 @@ parse_infix_to_rpn = add_term -- >>= \inp -> trace (show inp) (return inp)
                   <?> "infix math expression"
 
 
+
 -- | parser for expressions chained via "+" 
 add_term :: CharParser ModelState RpnStack
 add_term = concat . insert_adds <$> 
@@ -50,6 +51,7 @@ add_term = concat . insert_adds <$>
   where
     insert_adds [] = []
     insert_adds (x:xs) = x:foldr (\y a -> y:[BinFunc (+)]:a) [] xs
+
 
 
 -- | parser for expressions chained via "-"
@@ -63,6 +65,7 @@ sub_term = concat . insert_subs <$>
     insert_subs (x:xs) = x:foldr (\y a -> y:[BinFunc (-)]:a) [] xs
 
 
+
 -- | parser for expressions chained via "*" 
 div_term :: CharParser ModelState RpnStack
 div_term = concat . insert_divs <$> 
@@ -72,6 +75,7 @@ div_term = concat . insert_divs <$>
   where
     insert_divs [] = []
     insert_divs (x:xs) = x:foldr (\y a -> y:[BinFunc (/)]:a) [] xs
+
 
 
 -- | parser for expressions chained via "/"
@@ -85,6 +89,7 @@ mul_term = concat . insert_muls <$>
     insert_muls (x:xs) = x:foldr (\y a -> y:[BinFunc (*)]:a) [] xs
 
 
+
 -- | parser for potentiation operations "^"
 exp_term :: CharParser ModelState RpnStack
 exp_term = concat . insert_exps <$> (whiteSpace *> factor) `sepBy` (reservedOp "^")
@@ -95,6 +100,7 @@ exp_term = concat . insert_exps <$> (whiteSpace *> factor) `sepBy` (reservedOp "
     insert_exps (x:xs) = x:foldr (\y a -> y:[BinFunc real_exp]:a) [] xs
 
 
+
 -- | parser for individual factors, i.e, numbers,
 -- variables or operations
 factor :: CharParser ModelState RpnStack
@@ -103,6 +109,7 @@ factor = try parse_single_number  -- need try due to the unary "-"
       <|> parse_functions
       <|> parse_variable
       <?> "token or variable"         
+
 
 
 -- | parse all operations of type (Double -> Double)
@@ -124,6 +131,7 @@ parse_functions = (msum $ extract_ops builtinFunctions)
     insert_func f xs = xs ++ [UnaFunc f]
 
 
+
 -- | parse a potentially signed expression enclosed in parenthesis.
 -- In the case of parenthesised expressions we 
 -- parse -(...) as (-1.0)*(...)
@@ -133,6 +141,7 @@ signed_parenthesis = push_parens <$> parse_sign <*> parens add_term
 
   where
     push_parens sign xs = xs ++ [Number sign,BinFunc (*)]
+
 
 
 -- | parse a single number; integers are automatically promoted 
@@ -146,6 +155,7 @@ parse_single_number = push <$> (parse_number <* notFollowedBy alphaNum)
     push x = [Number x]
 
 
+
 -- | parse a number, can be used with 'many' and other parser
 -- combinators; integers are automatically promoted to double
 parse_number :: CharParser ModelState Double
@@ -157,10 +167,12 @@ parse_number = converter <$> parse_sign <*> naturalOrFloat
                            Right x -> sign * x
 
 
+
 -- | parse the sign of a numerical expression
 parse_sign :: CharParser ModelState Double
 parse_sign = option 1.0 ( whiteSpace *> char '-' *> pure (-1.0) )
           <?> "sign"
+
 
 
 -- | this is how valid variable names have to look like

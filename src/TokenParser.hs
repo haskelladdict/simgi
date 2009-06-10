@@ -108,7 +108,8 @@ keywords = [ "def", "molecules", "reactions", "time", "outputIter"
            ]
 
 operators :: [String]
-operators = ["+","->","::","=","{","}","=>"]
+operators = ["+", "->", "::", "=", "{", "}", ">=", "==", "<="
+            , "<", ">"]
 
 
 

@@ -39,7 +39,8 @@ import ExtraFunctions
 import GenericModel
 import RpnCalc
 
---import Debug.Trace
+import Debug.Trace
+
 
 -- | main simulation driver
 -- the simulator either stops when
@@ -130,15 +131,19 @@ handle_events (x:xs) molMap t =
     handle_events xs newMolMap t
 
 
+
 -- | handle a single user event
 handle_single_event :: Event -> MoleculeMap -> Double -> MoleculeMap
 handle_single_event evt molMap t =
   let
-    trigger    = evtTrigger evt
-    actions    = evtActions evt
-    triggerVal = rpn_compute molMap t trigger
+    trigger      = evtTrigger evt
+    leftTrigger  = rpn_compute molMap t (trigLeftExpr trigger)
+    rightTrigger = rpn_compute molMap t (trigRightExpr trigger)
+    triggerOp    = trigRelation trigger
+    triggerVal   = leftTrigger `triggerOp` rightTrigger
+    actions      = evtActions evt
   in 
-    if is_equal triggerVal 0.0 
+    if triggerVal
       then execute_actions actions molMap t 
       else molMap
 

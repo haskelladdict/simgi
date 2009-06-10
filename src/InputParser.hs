@@ -71,9 +71,30 @@ parse_events = Event <$> (parse_trigger <* whiteSpace)
 
 
 -- | parser for an event trigger
-parse_trigger :: CharParser ModelState RpnStack
-parse_trigger = braces parse_infix_to_rpn
-             <?> "event trigger"
+parse_trigger :: CharParser ModelState EventTrigger
+parse_trigger = braces parse_trigger_expression 
+             <?> "event trigger block"
+
+
+
+-- | parse a trigger expression
+parse_trigger_expression :: CharParser ModelState EventTrigger
+parse_trigger_expression = 
+  EventTrigger <$> parse_infix_to_rpn <*> parse_relational
+               <*> parse_infix_to_rpn
+                        <?> "event trigger expression"
+
+
+
+-- | parse a relational expression and return its associated
+-- binary function
+parse_relational :: CharParser ModelState (Double -> Double -> Bool)
+parse_relational =  try ( reserved ">=" >> pure (>=) )
+                <|> try ( reserved "<=" >> pure (<=) )
+                <|> try ( reserved "==" >> pure (==) )
+                <|> ( reserved ">" >> pure (>) )
+                <|> ( reserved "<" >> pure (<) )
+                <?> "relational expression"
 
 
 

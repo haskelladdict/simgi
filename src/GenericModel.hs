@@ -22,6 +22,7 @@
 module GenericModel ( defaultRateList
                     , Event(..)
                     , EventAction(..)
+                    , EventTrigger(..)
                     , GillespieState
                     , initialModelState
                     , MathExpr(..)
@@ -98,6 +99,16 @@ data EventAction = EventAction { evtName   :: String
 
 
 
+-- | data type describing an expression that triggers a 
+-- user event
+data EventTrigger = EventTrigger 
+  { trigLeftExpr  :: RpnStack
+  , trigRelation  :: Double -> Double -> Bool
+  , trigRightExpr :: RpnStack
+  }
+
+
+
 -- | data type keeping track of possible events occuring during
 -- the simulation. Each event consist of a
 --
@@ -110,7 +121,7 @@ data EventAction = EventAction { evtName   :: String
 --
 -- changing the number of mol by <numerical expression>
 --
-data Event = Event { evtTrigger :: RpnStack
+data Event = Event { evtTrigger :: EventTrigger
                    , evtActions :: [EventAction]
                    }
 

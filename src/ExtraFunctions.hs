@@ -26,9 +26,9 @@ module ExtraFunctions ( avogadroNum
                       , fact 
                       , is_equal
                       , is_equal_with
+                      , maybe_to_int
+                      , maybe_to_positive_int
                       , real_exp 
-                      , to_int
-                      , to_positive_int
                       ) where
 
 
@@ -43,18 +43,23 @@ avogadroNum :: Double
 avogadroNum = 6.0221415e23
 
 
+
 -- | use glibc DBL_EPSILON
 dbl_epsilon :: Double
 dbl_epsilon = 2.2204460492503131e-16
+
+
 
 -- | comparison function for doubles via dbl_epsion
 is_equal :: Double -> Double -> Bool
 is_equal x y = abs(x-y) <= abs(x) * dbl_epsilon
 
 
+
 -- | comparison function for doubles via threshold
 is_equal_with :: Double -> Double -> Double -> Bool
 is_equal_with x y th = abs(x-y) <= abs(x) * th
+
 
 
 -- | function checking if a Double can be interpreted as a non
@@ -65,20 +70,22 @@ is_equal_with x y th = abs(x-y) <= abs(x) * th
 -- Integer via floor and the compare if the numbers are identical.
 -- If yes, the number seems to be an Integer and we return it,
 -- otherwise Nothing
-to_positive_int :: Double -> Maybe Integer
-to_positive_int x = 
+maybe_to_positive_int :: Double -> Maybe Integer
+maybe_to_positive_int x = 
   case (is_equal (fromInteger . floor $ x) x) && (x > 0.0) of
     True  -> Just $ floor x
     False -> Nothing
 
 
+
 -- | function checking if a Double can be interpreted as an
 -- Integer. See is_positive_int for more detail
-to_int :: Double -> Maybe Integer
-to_int x = 
+maybe_to_int :: Double -> Maybe Integer
+maybe_to_int x = 
   case is_equal (fromInteger . floor $ x) x of
     True  -> Just $ floor x
     False -> Nothing
+
 
 
 -- | helper function for defining real powers
@@ -92,10 +99,12 @@ real_exp :: Double -> Double -> Double
 real_exp a x = realToFrac $ c_pow (realToFrac a) (realToFrac x)
 
 
+
 -- | factorial function
 fact :: Integer -> Integer
 fact 0 = 1
 fact n = n * fact (n-1)
+
 
 
 -- | error function erf(x)

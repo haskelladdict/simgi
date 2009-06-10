@@ -133,7 +133,6 @@ handle_events (x:xs) molMap t =
 -- | handle a single user event
 handle_single_event :: Event -> MoleculeMap -> Double -> MoleculeMap
 handle_single_event evt molMap t =
-  
   let
     trigger    = evtTrigger evt
     actions    = evtActions evt
@@ -159,33 +158,32 @@ execute_actions (x:xs) molMap t =
 
 -- | handle a single event triggered action
 execute_single_action :: EventAction -> MoleculeMap -> Double
-                -> MoleculeMap
+                      -> MoleculeMap
 execute_single_action eventAction molMap t =
   let
     name   = evtName eventAction
     action = evtAct eventAction
   in
     case action of
-      Constant c   -> adjust_mol_count name (c_to_int c) molMap
+      Constant c   -> adjust_mol_count name (to_int c) molMap
 
       Function rpn -> let
-                        newCount = c_to_int $ rpn_compute molMap t rpn
+                        newCount = to_int $ rpn_compute molMap t rpn
                       in
                         adjust_mol_count name newCount molMap
   
       where
-        c_to_int :: Double -> Int
-        c_to_int = floor 
+        -- NOTE: presently, converting double -> int is done
+        -- via floor. Is this a good policy (once documented
+        -- properly)?
+        to_int :: Double -> Int
+        to_int = floor 
 
 
 
 -- | adjust the count of a certain molecule to a new value
 adjust_mol_count :: String -> Int -> MoleculeMap -> MoleculeMap
-adjust_mol_count key val molMap = 
- -- let
- --   intVal = floor val :: Int
- -- in
-    M.insert key val molMap
+adjust_mol_count key val molMap = M.insert key val molMap
 
 
 

@@ -18,8 +18,8 @@
 
 --------------------------------------------------------------------}
 
--- | this routine tests the functionality in our RPNStack, i.e.,
--- the infix to RPN parser as well as the compute engine
+-- | this routine tests some aspects of the input parsing
+-- routines
 module Main where
 
 
@@ -33,8 +33,8 @@ import System.Exit
 import ExtraFunctions
 import GenericModel
 import PrettyPrint
-import RpnParser
-import RpnCalc
+import InputParser
+--import RpnCac
 import TokenParser
 
 
@@ -51,11 +51,13 @@ type TestCase = (String, Double)
 
 
 -- | simple tests without access to local variables
-simpleTests :: [TestCase]
-simpleTests = 
-  [ ("3+4", 7.0) 
-  , ("3 +4", 7.0)
-  , ("  3+  4", 7.0)
+--- NOTE: for now we simply test if parsing succeeds
+simpleEventParseTests :: [TestCase]
+simpleEventParseTests = 
+  [ ("{ c == 100 } => { a = 10 }", 0.0)
+  , ("{ c== 100} => { a= 10}", 0.0)
+  , ("{c==121 } => { a=10 }", 0.0) ]
+{-
   , (" 3 +  4   ", 7.0)
   , ("-3 + 3   ", 0.0)
   , ("3*4+4", 16.0)
@@ -73,7 +75,7 @@ simpleTests =
   , ("log(exp(2) - sqrt(2))", 1.7875577437560926)
   , ("2 * 3.14 * sqrt(2)", 8.88126117170303786)
   ]
-
+-}
 
 -- | variable tests
 variableTests :: [TestCase]
@@ -125,26 +127,26 @@ time_1 = 12.345
 
 -- | main test driver
 main :: IO ()
-main = putStrLn "\n\n\nTesting RPN stack (parser/compute engine)"
+main = putStrLn "\n\n\nTesting Input Parser"
 
   -- run simple tests
   >> (putStr $ color_string Cyan "\nSimple tests:\n")
   >> let simpleOut = execWriter $ test_driver 
-           testMap_1 time_1 simpleTests
+           testMap_1 time_1 simpleEventParseTests
      in
   examine_output simpleOut >>= \simpleStatus ->
 
 
   -- run variable tests
-  (putStr $ color_string Cyan "\n\nVariable tests:\n")
+{-  (putStr $ color_string Cyan "\n\nVariable tests:\n")
   >> let varOut = execWriter $ test_driver testMap_1 time_1
                                variableTests
      in
   examine_output varOut >>= \varStatus ->
-
+-}
 
   -- evaluate status and return
-  let status = simpleStatus && varStatus in
+  let status = simpleStatus in
     if status == True then
       exitWith ExitSuccess
     else
@@ -194,22 +196,11 @@ test_driver mol time (x:xs) =
   in
 
     -- parse expression
-    case runParser parse_infix_to_rpn initialModelState "" expr of
+    case runParser parse_events initialModelState "" expr of
       Left er -> tell [TestResult False expr (show expected) (show er)]
-      Right stack ->
-
-        -- evalute RPN stack
-        let result = rpn_compute mol time stack in
-          examine_result expected result expr 
-          >> test_driver mol time xs
-
-          where
-            examine_result target out expr = 
-              if is_equal target out
-                then 
-                  tell [TestResult True expr (show target) (show out)]
-                else 
-                  tell [TestResult False expr (show target) (show out)]
+      Right stack -> 
+        tell [TestResult True expr (show expected) ("good parse")]
+        >> test_driver mol time xs
           
 
 -- | data structure for keeping track of our test results

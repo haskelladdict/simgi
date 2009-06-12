@@ -19,7 +19,9 @@
 --------------------------------------------------------------------}
 
 -- | input file parser 
-module InputParser ( input_parser ) where
+module InputParser ( input_parser
+                   , parse_events 
+                   ) where
 
 -- imports
 import Control.Monad
@@ -89,11 +91,11 @@ parse_trigger_expression =
 -- | parse a relational expression and return its associated
 -- binary function
 parse_relational :: CharParser ModelState (Double -> Double -> Bool)
-parse_relational =  try ( reserved ">=" >> pure (>=) )
-                <|> try ( reserved "<=" >> pure (<=) )
-                <|> try ( reserved "==" >> pure (==) )
-                <|> ( reserved ">" >> pure (>) )
-                <|> ( reserved "<" >> pure (<) )
+parse_relational =  try ( reservedOp ">=" >> pure (>=) )
+                <|> try ( reservedOp "<=" >> pure (<=) )
+                <|> try ( reservedOp "==" >> pure (==) )
+                <|> ( reservedOp ">" >> pure (>) )
+                <|> ( reservedOp "<" >> pure (<) )
                 <?> "relational expression"
 
 

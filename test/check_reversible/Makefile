@@ -16,4 +16,5 @@ check:
 	
 
 clean:
-	rm -f *.hi *.o check_deviation average
+	rm -f *.hi *.o check_deviation average reversible.dat \
+		simgi.*

@@ -3,17 +3,28 @@
 default: check
 
 
-.PHONY: check check_short clean
-
-check_rpn:
-	make -C rpnstack_test
-
-check:
-	make -C rpnstack_test
-	make -C reversible_test
+.PHONY: check check_input_parser check_rpnstack check_reversible \
+	clean 
 
 
-clean:
-	make -C rpnstack_test clean
-	make -C reversible_test clean
+check_rpnstack:
+	make -C $@
+
+
+check_reversible:
+	make -C $@
+
+
+check_input_parser:
+	make -C $@
+
+
+check: check_rpnstack check_input_parser check_reversible
+
+
+clean: 
+	make -C check_rpnstack clean
+	make -C check_reversible clean
+	make -C check_input_parser clean
+
 	

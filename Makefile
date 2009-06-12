@@ -33,10 +33,6 @@ check: $(OBJECTS) all
 	make -C test
 
 
-check_rpn: $(OBJECTS) all
-	make -C test check_rpn
-
-
 install: simgi
 	install -d $(docdir)
 	install -d $(bindir)

@@ -5,4 +5,5 @@ src/simgi
 *.swp
 average
 RpnStackTest
+InputParserTest
 check_deviation

@@ -75,6 +75,11 @@ simpleTests =
   ]
 
 
+
+----------------------------------------------------------------
+-- tests with access to local variables and time
+----------------------------------------------------------------
+
 -- | variable tests
 variableTests :: [TestCase]
 variableTests =
@@ -92,11 +97,6 @@ variableTests =
   , ("x-x +x -x -y + y", 0.0)
   , ("-TIME/TIME + TIME - TIME + 1.0", 0.0)
   ]
-
-
-----------------------------------------------------------------
--- tests with access to local variables and time
-----------------------------------------------------------------
 
 
 

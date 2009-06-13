@@ -64,25 +64,62 @@ type TestCase = (String, ExpectedOutput)
 --- NOTE: for now we simply test if parsing succeeds
 simpleEventParseTests :: [TestCase]
 simpleEventParseTests = 
-  [ ("{ z == 101 } => { a = 10 }", (True, M.fromList [("a",10)]))
-{-  , ("{ z== 100} => { a= 10}", 0.0)
-  , ("{z==121 } => { a=10 }", 0.0) 
-  , ("{a==100} => { a = 10 }", 0.0)
-  , ("{ a == 100}=>{ a= 10}", 0.0)
-  , ("{ b == 121 }=>{a=10}", 0.0) 
-  , ("{ b <= 100} => { a= 10}", 0.0)
-  , ("{ a >= 100} => { a= 10}", 0.0)
-  , ("{ c < 100} => { a= 10}", 0.0)
-  , ("{ a > 100} => { a= 10}", 0.0)
-  , ("{ b == 121 } => { a=10 }", 0.0) 
-  , ("{ c == 100 } => { a = 10; b = 20 }", 0.0)
-  , ("{ b == 100 } => { a = 10; b = 20; }", 0.0)
-  , ("{ a == 100 } => { a = 10; b = 20 }", 0.0)
-  , ("{ a == 100 } => { a = 10; b = 20; }", 0.0)
-  , ("{ b == 100 } => { a = 10*a*b; b = 20+a^2 }", 0.0)
-  , ("{ c == 100 } => { a = 10*exp(-TIME); b = a; }", 0.0)
-  , ("{ a == 100 } => { a = b^a; b = exp(-a*TIME) }", 0.0)
-  , ("{ c == 100 } => { a = 10+c; b = sqrt(log((a^2))); }", 0.0) -}
+  [ ("{ z == 100 } => { x = x }", 
+      (True, M.fromList [("x",1000),("y",2000),("z",100)]))
+
+  , ("{ z== 100} => { x = x+y; y = y+1 }", 
+      (True, M.fromList [("x",3000),("y",2001),("z",100)]))
+
+  , ("{z==121 } => { y=10 }", 
+      (False, M.fromList [("x",1000),("y",10),("z",100)]))
+
+  , ("{z==101} => { x = x/2.0 }", 
+      (False, M.fromList [("x",500),("y",2000),("z",100)]))
+
+  , ("{ z == 100}=>{ z= 121; x = 500; y=2000;}", 
+      (True, M.fromList [("x",500),("y",2000),("z",121)]))
+
+  , ("{ y >= 121 }=>{z=1050}", 
+      (True, M.fromList [("x",1000),("y",2000),("z",1050)]))
+
+  , ("{ z <= 100} => { x= sqrt(4)*100; y = x^2/10}", 
+      (True, M.fromList [("x",200),("y",4000),("z",100)]))
+
+  , ("{ x >= 100} => { z= z; z = 2*z; z = 3*z;}", 
+      (True, M.fromList [("x",1000),("y",2000),("z",600)]))
+
+  , ("{ z < 100} => { x= 10; y = z}", 
+      (False, M.fromList [("x",10),("y",100),("z",100)]))
+
+  , ("{ x > 100} => { y= x+z}", 
+      (True, M.fromList [("x",1000),("y",1100),("z",100)]))
+
+  , ("{ y == 2000 } => { x=1001 }", 
+      (True, M.fromList [("x",1001),("y",2000),("z",100)]))
+
+  , ("{ z <= 302 } => { x = 10; y = 10; z= 200; z=10 }", 
+      (True, M.fromList [("x",10),("y",10),("z",10)]))
+
+  , ("{ y == 100 } => { x = 10; y = 20; }", 
+      (False, M.fromList [("x",10),("y",20),("z",100)]))
+
+  , ("{ z == 100 } => { x = 10; y = 20 }", 
+      (True, M.fromList [("x",10),("y",20),("z",100)]))
+
+  , ("{ z == 100 } => { x = 10; y = 20 +      z }", 
+      (True, M.fromList [("x",10),("y",120),("z",100)]))
+
+  , ("{ x > 100 } => { x = 10*x+y; y = 20+z^2 }", 
+      (True, M.fromList [("x",12000),("y",10020),("z",100)]))
+
+  , ("{ z == 100 } => { x = 1e6*exp(-TIME); y = x; }",
+      (True, M.fromList [("x",4),("y",4),("z",100)]))
+
+  , ("{ y == 100 } => { x = 2; x = y^x; y = x*exp(-TIME) }", 
+      (False, M.fromList [("x",4000000),("y",17),("z",100)]))
+
+  , ("{ z == 100 } => { x = 10+z; y = sqrt(log((x^2))); }",
+      (True, M.fromList [("x",110),("y",3),("z",100)])) 
   ]
 
 
@@ -99,7 +136,7 @@ simpleEventParseTests =
 -- | testmap containing a set of molecules and their 
 -- concentrations
 testMap_1 :: MoleculeMap
-testMap_1 = M.fromList [("x",1000),("y",2000),("z",101)]
+testMap_1 = M.fromList [("x",1000),("y",2000),("z",100)]
 
 -- | a simulation time
 time_1 :: Double
@@ -127,16 +164,17 @@ main = putStrLn "\n\n\nTesting Input Parser"
   examine_output eventParseOut >>= \eventParseStatus ->
 
 
-  -- check event expressions
-  (putStr $ color_string Cyan "\n\nEvent Trigger tests:\n")
-  >> let eventContentOut = execWriter $ event_trigger_test_driver 
+  -- check event triggers and actions
+  (putStr $ color_string Cyan "\n\nEvent trigger/action tests:\n")
+  >> let eventActionOut = execWriter $ event_action_test_driver 
            testMap_1 time_1 simpleEventParseTests
      in
-  examine_output eventContentOut >>= \eventContentStatus ->
+  examine_output eventActionOut >>= \eventActionStatus ->
 
 
   -- evaluate status and return
-  let status = eventParseStatus && eventContentStatus in
+  let status = eventParseStatus && eventActionStatus 
+  in
     if status == True then
       exitWith ExitSuccess
     else
@@ -164,18 +202,23 @@ event_parser_test_driver mol time (x:xs) =
           
 
 
--- | this driver parses the event expression and checks if the
--- trigger expression evaluates properly.
+-- | this driver parses the event expression and checks if
+-- the trigger and its actions action check out, i.e., we apply 
+-- them to our current state and see if we get the proper number 
+-- of molecules.
+-- NOTE: We do not thread the state through all tests but always
+-- start with our default, otherwise it becomes very tedious
+-- to add/remove tests.
 -- This parser should be run after the proper parsing has been
 -- verified via event_parser_test_driver
-event_trigger_test_driver :: MoleculeMap -> Double -> [TestCase] 
+event_action_test_driver :: MoleculeMap -> Double -> [TestCase] 
             -> Writer [TestResult] ()
-event_trigger_test_driver _   _    []     = return ()
-event_trigger_test_driver mol time (x:xs) =
+event_action_test_driver _   _    []     = return ()
+event_action_test_driver mol time (x:xs) =
 
   let expr            = fst x
       expectedTrigger = fst . snd $ x
-      expectedCounts  = snd . snd $ x 
+      expectedMols    = snd . snd $ x 
   in
 
     -- parse expression
@@ -185,44 +228,20 @@ event_trigger_test_driver mol time (x:xs) =
         
         -- make sure the trigger expression evaluated properly
         let
+          actions    = evtActions event
+          outMols    = execute_actions actions mol time 
           outTrigger = check_trigger mol time expectedTrigger event 
         in
-          case outTrigger of
-            False -> tell [TestResult False expr (show expectedTrigger)
-                           (show outTrigger)]
+          case outTrigger && (outMols == expectedMols) of
+
+            False -> tell [TestResult False expr 
+              (show expectedTrigger ++ " => " ++ show expectedMols)
+              (show outTrigger ++ " => " ++ show outMols)]
+
             True  -> tell [TestResult True expr "" ("good parse")]
-                       >> event_trigger_test_driver mol time xs
- 
+                       >> event_action_test_driver mol time xs
 
--- | this driver parses the event expression and checks their
--- content. This test really only makes sense if the parser can 
--- parse the expressions in the first place, hence run 
--- event_parser_test_driver first to catch all parse failures first.
-{-event_trigger_test_driver :: MoleculeMap -> Double -> [TestCase] 
-            -> Writer [TestResult] ()
-event_trigger_test_driver _   _    []     = return ()
-event_trigger_test_driver mol time (x:xs) =
 
-  let expr            = fst x
-      expectedTrigger = fst . snd $ x
-      expectedCounts  = snd . snd $ x 
-  in
-
-    -- parse expression
-    case runParser parse_events initialModelState "" expr of
-      Left er     -> tell [TestResult False expr "" (show er)]
-      Right event -> 
-        
-        -- make sure the trigger expression evaluated properly
-        let
-          outTrigger = check_trigger mol time expectedTrigger event 
-        in
-          case outTrigger of
-            False -> tell [TestResult False expr (show expectedTrigger)
-                           (show outTrigger)]
-            True  -> tell [TestResult True expr "" ("good parse")]
-                       >> event_trigger_test_driver mol time xs
--} 
 
 -- | given an Event and a MoleculeMap check that the trigger
 -- evaluates to the expected value

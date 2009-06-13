@@ -22,6 +22,7 @@
 module Engine ( compute_trigger
               , create_initial_output
               , create_initial_state
+              , execute_actions
               , gillespie_driver
               , module GenericModel
               ) where

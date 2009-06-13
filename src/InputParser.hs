@@ -286,9 +286,9 @@ parse_reaction = setup_reaction
                     then cin     -- systemVol = nil
                     else convert_rate cin (M.size r) vol
       in 
-        Reaction { rate       = theRate
-                 , aList      = hFactor
-                 , react      = action
+        Reaction { rate     = theRate
+                 , actors   = hFactor
+                 , reaction = action
                  }
 
 

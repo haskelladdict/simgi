@@ -83,8 +83,8 @@ defaultRateList = []
 --     changes the count of molecule i by j 
 --
 data Reaction = Reaction { rate       :: Rate
-                         , aList      :: [(String,Double -> Double)]
-                         , react      :: [(String,Int)]
+                         , actors     :: [(String,Double -> Double)]
+                         , reaction   :: [(String,Int)]
                          }
 
 
@@ -92,9 +92,19 @@ data Reaction = Reaction { rate       :: Rate
 -- (used in our unit tests)
 instance Eq Reaction where
 
-  r1 == r2 = False
+  x == y  =  True {-compare_reactions x y
 
+  where
+    compare_reactions :: Reaction -> Reaction -> Bool
+    compare_reactions 
+      (Reaction { rate = rate1, aList = aList1, react = react1 })
+      (Reaction { rate = rate2, aList = aList2, react = react2 }) =
 
+      let
+        rateComp = compare_rate rate1 rate2
+        aListComp = compare_alist 
+
+-}
 
 
 

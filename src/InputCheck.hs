@@ -53,7 +53,7 @@ check_input (ModelState { molCount    = theMols
 
  where
   -- | extract all reaction participants
-  react_mols = L.nub . L.concat . map (map (fst) . react) 
+  react_mols = L.nub . L.concat . map (map (fst) . reaction) 
 
 
   -- | extract all definied molecules

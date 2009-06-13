@@ -41,7 +41,7 @@ import ExtraFunctions
 import GenericModel
 import RpnCalc
 
-import Debug.Trace
+--import Debug.Trace
 
 
 -- | main simulation driver
@@ -223,7 +223,7 @@ generate_output afreq it t amol outlist
 adjust_molcount :: MoleculeMap -> [Reaction] -> Int -> MoleculeMap
 adjust_molcount theMap rs mID =
 
-  let (Reaction { react = react_in }) = rs !! mID
+  let (Reaction { reaction = react_in }) = rs !! mID
   in
     adjustMap react_in theMap 
 
@@ -249,7 +249,7 @@ get_mu val = length . takeWhile ( <val ) . scanl1 (+)
 compute_rates :: [Reaction] -> MoleculeMap -> Double 
               -> RateList -> RateList
 compute_rates [] _ _ rts = reverse rts
-compute_rates ((Reaction {rate = c_in, aList = a_in }):rs) 
+compute_rates ((Reaction {rate = c_in, actors = a_in }):rs) 
   theMap theTime rts = 
   
   case c_in of

@@ -18,7 +18,7 @@
 
 --------------------------------------------------------------------}
 
--- | this routine tests some aspects of the input parsing
+-- | this routine tests some aspects of the event block parsing
 -- routines
 module Main where
 
@@ -31,11 +31,10 @@ import System.Exit
 
 -- local imports
 import Engine
-import ExtraFunctions
 import GenericModel
 import PrettyPrint
 import InputParser
---import RpnCac
+import TestHelpers
 import TokenParser
 
 
@@ -124,12 +123,6 @@ simpleEventParseTests =
 
 
 ----------------------------------------------------------------
--- tests with access to local variables and time
-----------------------------------------------------------------
-
-
-
-----------------------------------------------------------------
 -- Molecule maps and definitions for specific simulation times
 ----------------------------------------------------------------
 
@@ -187,7 +180,7 @@ main = putStrLn "\n\n\nTesting Input Parser"
 event_parser_test_driver :: MoleculeMap -> Double -> [TestCase] 
             -> Writer [TestResult] ()
 event_parser_test_driver _   _    []     = return ()
-event_parser_test_driver mol time (x:xs) =
+event_parser_test_driver mol t (x:xs) =
 
   let expr     = fst x
       expected = snd x
@@ -196,9 +189,9 @@ event_parser_test_driver mol time (x:xs) =
     -- parse expression
     case runParser parse_events initialModelState "" expr of
       Left er -> tell [TestResult False expr (show expected) (show er)]
-      Right stack -> 
+      Right _ -> 
         tell [TestResult True expr (show expected) ("good parse")]
-        >> event_parser_test_driver mol time xs
+        >> event_parser_test_driver mol t xs
           
 
 
@@ -214,7 +207,7 @@ event_parser_test_driver mol time (x:xs) =
 event_action_test_driver :: MoleculeMap -> Double -> [TestCase] 
             -> Writer [TestResult] ()
 event_action_test_driver _   _    []     = return ()
-event_action_test_driver mol time (x:xs) =
+event_action_test_driver mol t (x:xs) =
 
   let expr            = fst x
       expectedTrigger = fst . snd $ x
@@ -229,8 +222,8 @@ event_action_test_driver mol time (x:xs) =
         -- make sure the trigger expression evaluated properly
         let
           actions    = evtActions event
-          outMols    = execute_actions actions mol time 
-          outTrigger = check_trigger mol time expectedTrigger event 
+          outMols    = execute_actions actions mol t 
+          outTrigger = check_trigger mol t expectedTrigger event 
         in
           case outTrigger && (outMols == expectedMols) of
 
@@ -239,7 +232,7 @@ event_action_test_driver mol time (x:xs) =
               (show outTrigger ++ " => " ++ show outMols)]
 
             True  -> tell [TestResult True expr "" ("good parse")]
-                       >> event_action_test_driver mol time xs
+                       >> event_action_test_driver mol t xs
 
 
 
@@ -247,13 +240,13 @@ event_action_test_driver mol time (x:xs) =
 -- evaluates to the expected value
 check_trigger :: MoleculeMap -> Double -> Bool -> Event
                          -> Bool
-check_trigger map t expected (Event { evtTrigger = trigger }) =
+check_trigger molMap t expected (Event { evtTrigger = trigger }) =
   computed == expected
   
   where
-    computed = compute_trigger map t trigger
+    computed = compute_trigger molMap t trigger
 
-
+{-
 -- | examine the output of a test routine
 -- | helper function for examining the output of a good test run
 -- (i.e. one that should succeed), prints out the result for each 
@@ -299,4 +292,4 @@ data TestResult = TestResult { status :: Bool
 
 defaultResult :: TestResult
 defaultResult = TestResult False "" "" ""
-
+-}

@@ -1,13 +1,13 @@
+include ../test_helpers/make_common
 
-SRC_LOCATION=../../src
 SIMGI_PATH=${SRC_LOCATION}/simgi
 
 default: check
 
 .PHONY: check clean
 check:
-	ghc -i$(SRC_LOCATION) --make check_deviation.hs
-	ghc -i$(SRC_LOCATION) --make average.hs
+	ghc $(GHC_FLAGS_DEVEL) -i$(SRC_LOCATION) --make check_deviation.hs
+	ghc $(GHC_FLAGS_DEVEL) -i$(SRC_LOCATION) --make average.hs
 	@echo
 	@echo "Running reversible reaction test."
 	@echo "This may take a while ...."

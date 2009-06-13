@@ -23,6 +23,7 @@
 module Main where
 
 -- imports
+import Prelude
 import System
 import System.Environment
 

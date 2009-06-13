@@ -35,6 +35,7 @@ import GenericModel
 import PrettyPrint
 import RpnParser
 import RpnCalc
+import TestHelpers
 import TokenParser
 
 
@@ -151,43 +152,12 @@ main = putStrLn "\n\n\nTesting RPN stack (parser/compute engine)"
       exitWith $ ExitFailure 1 
 
 
--- | examine the output of a test routine
--- | helper function for examining the output of a good test run
--- (i.e. one that should succeed), prints out the result for each 
--- test, collects the number of successes/failures and returns 
--- True in case all tests succeeded and False otherwise
-examine_output :: [TestResult] -> IO Bool
-examine_output = foldM examine_output_h True
-                 
-  where
-    examine_output_h :: Bool -> TestResult -> IO Bool
-    examine_output_h acc (TestResult status token target actual) = do
-      if status == True then do
-          putStr   $ color_string Blue "["
-          putStr   $ color_string White "OK"
-          putStr   $ color_string Blue  "] "
-          putStr   $ color_string Green " Successfully evaluated "
-          putStrLn $ color_string Yellow token
-          return $ acc && True
-        else do
-          putStr   $ color_string Blue "["
-          putStr   $ color_string Red "TROUBLE"
-          putStr   $ color_string Blue "] "
-          putStr   $ color_string Green " Failed to evaluate "
-          putStrLn $ color_string Yellow token
-          putStrLn $ color_string Green "\t\texpected : " 
-                       ++ (show target)
-          putStrLn $ color_string Green "\t\tgot      : " 
-                       ++ (show actual)
-          return False
-
-
 -- | driver for running a test routine that results in a
 -- successful evaluation of a test expression
 test_driver :: MoleculeMap -> Double -> [TestCase] 
             -> Writer [TestResult] ()
 test_driver _ _ []          = return ()
-test_driver mol time (x:xs) =
+test_driver molMap t (x:xs) =
 
   let expr     = fst x
       expected = snd x
@@ -199,30 +169,14 @@ test_driver mol time (x:xs) =
       Right stack ->
 
         -- evalute RPN stack
-        let result = rpn_compute mol time stack in
+        let result = rpn_compute molMap t stack in
           examine_result expected result expr 
-          >> test_driver mol time xs
+          >> test_driver molMap t xs
 
           where
-            examine_result target out expr = 
+            examine_result target out anExpr = 
               if is_equal target out
                 then 
-                  tell [TestResult True expr (show target) (show out)]
+                  tell [TestResult True anExpr (show target) (show out)]
                 else 
-                  tell [TestResult False expr (show target) (show out)]
-          
-
--- | data structure for keeping track of our test results
--- which consist of a bool indicating success
--- or failure, the test token as well as the expected and
--- received result
-data TestResult = TestResult { status :: Bool
-                             , token  :: String
-                             , target :: String
-                             , actual :: String
-                             }
-
-
-defaultResult :: TestResult
-defaultResult = TestResult False "" "" ""
-
+                  tell [TestResult False anExpr (show target) (show out)]

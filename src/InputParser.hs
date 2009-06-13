@@ -21,6 +21,7 @@
 -- | input file parser 
 module InputParser ( input_parser
                    , parse_events 
+                   , parse_reaction
                    ) where
 
 -- imports

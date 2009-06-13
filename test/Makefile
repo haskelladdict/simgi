@@ -22,8 +22,9 @@ check_event_parser:
 check_reaction_parser:
 	make -C $@
 
-check: check_rpnstack check_event_parser check_reversible \
-	check_reaction_parser
+check: check_rpnstack check_event_parser check_reaction_parser \
+	check_reversible 
+
 
 
 clean: 

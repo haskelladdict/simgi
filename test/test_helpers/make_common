@@ -1,0 +1,6 @@
+# some common variables all Makefiles in the test directory use
+
+GHC_FLAGS_DEVEL = -O -Wall -fwarn-simple-patterns -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-monomorphism-restriction -fwarn-implicit-prelude -fno-warn-orphans
+
+SRC_LOCATION=../../src
+HELPER_LOCATION=../test_helpers

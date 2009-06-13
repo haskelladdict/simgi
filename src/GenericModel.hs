@@ -88,6 +88,15 @@ data Reaction = Reaction { rate       :: Rate
                          }
 
 
+-- | make Reaction an instance of Eq so we can compare them
+-- (used in our unit tests)
+instance Eq Reaction where
+
+  r1 == r2 = False
+
+
+
+
 
 -- | data type describing an action triggered during an event
 -- It consists of a String tracking the molecule affected

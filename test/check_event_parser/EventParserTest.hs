@@ -187,7 +187,7 @@ event_parser_test_driver mol t (x:xs) =
   in
 
     -- parse expression
-    case runParser parse_events initialModelState "" expr of
+    case runParser parse_events testModelState "" expr of
       Left er -> tell [TestResult False expr (show expected) (show er)]
       Right _ -> 
         tell [TestResult True expr (show expected) ("good parse")]
@@ -215,7 +215,7 @@ event_action_test_driver mol t (x:xs) =
   in
 
     -- parse expression
-    case runParser parse_events initialModelState "" expr of
+    case runParser parse_events testModelState "" expr of
       Left er     -> tell [TestResult False expr "" (show er)]
       Right event -> 
         

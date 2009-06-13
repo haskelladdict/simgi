@@ -37,7 +37,7 @@ import GenericModel
 import RpnData
 import RpnParser
 
---import Debug.Trace
+-- import Debug.Trace
 
 
 -- | main parser entry point
@@ -343,7 +343,7 @@ parse_reaction = setup_reaction
 -- constant of a full blown infix math expression.
 -- Reaction rates must be enclosed by colons ":"
 parse_rate :: CharParser ModelState Rate
-parse_rate = braces parse_expression
+parse_rate = braces parse_rate_expression
 
 
 
@@ -403,6 +403,18 @@ parse_def_block blockName parser =
 
 
 
+-- | parse a simple rate expression
+-- FIXME: We can not re-use parse_expression below for
+-- now since currently the order of function/constant parsing 
+-- has to be reversed otherwise rates are always parsed
+-- as trivial Functions
+parse_rate_expression :: CharParser ModelState MathExpr
+parse_rate_expression = (try parse_constant_expression )
+                <|> parse_function_expression 
+                <?> "constant or function expression"
+
+
+
 -- | parse either a constant float or a complex function 
 -- expression evaluation to a float at runtime
 -- NOTE: It is important that we parse for a function
@@ -410,7 +422,7 @@ parse_def_block blockName parser =
 -- otherwise we get incomplete matches for things like 
 -- 10*x+y.
 parse_expression :: CharParser ModelState MathExpr
-parse_expression = (try parse_function_expression) 
+parse_expression = (try parse_function_expression)
                 <|> parse_constant_expression
                 <?> "constant or function expression"
 

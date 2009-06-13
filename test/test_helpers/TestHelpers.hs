@@ -21,15 +21,18 @@
 -- | this module provides a few common routines used in our
 -- unit tests
 module TestHelpers ( examine_output
+                   , testModelState
                    , TestResult(TestResult)
                    ) where
 
 
 -- imports 
 import Control.Monad
+import qualified Data.Map as M
 import Prelude
 
 -- local imports
+import GenericModel
 import PrettyPrint
 
 
@@ -80,3 +83,23 @@ data TestResult = TestResult { status :: Bool
 defaultResult :: TestResult
 defaultResult = TestResult False "" "" ""
 
+
+-- | initial model state we use for our unit tests
+-- we use a negative system volume so we don't have
+-- to deal with unit conversion when testing the
+-- reaction parser
+testModelState :: ModelState
+testModelState = ModelState { molCount    = M.empty
+                            , rates       = []
+                            , reactions   = []
+                            , randNums    = []
+                            , events      = []
+                            , systemVol   = -1.0 -- negative!
+                            , currentTime = 0.0
+                            , currentIter = 0
+                            , maxTime     = 0.0
+                            , maxIter     = 10000
+                            , outputFreq  = 1000
+                            , outputList  = []
+                            , outfileName = ""
+                            }

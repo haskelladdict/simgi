@@ -164,7 +164,7 @@ test_driver molMap t (x:xs) =
   in
 
     -- parse expression
-    case runParser parse_infix_to_rpn initialModelState "" expr of
+    case runParser parse_infix_to_rpn testModelState "" expr of
       Left er -> tell [TestResult False expr (show expected) (show er)]
       Right stack ->
 

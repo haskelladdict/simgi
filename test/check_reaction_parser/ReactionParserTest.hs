@@ -63,7 +63,7 @@ type TestCase = (String, ExpectedOutput)
 --- NOTE: for now we simply test if parsing succeeds
 simpleReactParseTests :: [TestCase]
 simpleReactParseTests = 
-  [ ("x + y -> z { 1e6}",
+  [ ("x + y -> z { 1e6 }",
     Reaction (Constant 1e6) 
              [("x",id),("y",id)]
              [("x",-1),("y",-1),("z",1)])
@@ -135,11 +135,11 @@ react_parser_test_driver mol t (x:xs) =
   in
 
     -- parse expression
-    case runParser parse_reaction initialModelState "" parseString of
+    case runParser parse_reaction testModelState "" parseString of
       Left er     -> tell [TestResult False parseString "" (show er)]
-      Right reacn -> 
+      Right react -> 
          
-         case (reacn == expected) of
+         case (react == expected) of
 
            False -> tell [TestResult False parseString "N/A" "N/A"]
 

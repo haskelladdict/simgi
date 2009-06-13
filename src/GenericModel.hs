@@ -42,7 +42,11 @@ import Prelude
 
 
 -- local imports
+import ExtraFunctions
 import RpnData
+
+
+import Debug.Trace 
 
 
 -- | A MoleculeMap keeps track of the current number of molecules
@@ -55,10 +59,24 @@ type MoleculeMap = M.Map String Int
 data MathExpr = Constant Double | Function RpnStack
 
 
+-- | make MathExpr an instance of Eq
+instance Eq MathExpr where
+  
+  x == y = compare_mathexpr x y
+
+    where
+    -- | compare two MathExpr and return True if the are
+    -- equal and False otherwise
+    compare_mathexpr :: MathExpr -> MathExpr -> Bool
+    compare_mathexpr (Constant n) (Constant m) = is_equal n m
+    compare_mathexpr _ _            = trace ("are here") $ False
+--  compare_mathexpr (
+
+
+
 
 -- | data type for reaction rates which are of type MathExpr
 type Rate = MathExpr
-
 
 
 -- | List of reactions and corresponding rates
@@ -92,19 +110,34 @@ data Reaction = Reaction { rate       :: Rate
 -- (used in our unit tests)
 instance Eq Reaction where
 
-  x == y  =  True {-compare_reactions x y
+  x == y  =  compare_reactions x y
 
-  where
+    where
+    -- | compare two reactions and return True if they
+    -- are equal and false otherwise
     compare_reactions :: Reaction -> Reaction -> Bool
     compare_reactions 
-      (Reaction { rate = rate1, aList = aList1, react = react1 })
-      (Reaction { rate = rate2, aList = aList2, react = react2 }) =
+      (Reaction { rate     = rate1
+                , actors   = actors1
+                , reaction = reaction1 })
+      (Reaction { rate     = rate2
+                , actors   = actors2 
+                , reaction = reaction2 }) =
 
       let
-        rateComp = compare_rate rate1 rate2
-        aListComp = compare_alist 
+        rateComp  = rate1 == rate2
+--        actorComp = compare_actors actors1 actors2
+--        reactComp = compare_reactions reaction1 reaction2
+      in
+        rateComp -- && actorComp && reactComp
 
--}
+
+    -- | compare two reaction rates
+    -- compare_rates :: Rate -> Rate -> Bool
+    -- compare_rates 
+
+
+
 
 
 

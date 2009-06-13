@@ -30,6 +30,7 @@ import Prelude
 import System.Exit
 
 -- local imports
+import Engine
 import ExtraFunctions
 import GenericModel
 import PrettyPrint
@@ -63,7 +64,7 @@ type TestCase = (String, ExpectedOutput)
 --- NOTE: for now we simply test if parsing succeeds
 simpleEventParseTests :: [TestCase]
 simpleEventParseTests = 
-  [ ("{ z == 100 } => { a = 10 }", (True, M.fromList [("a",10)]))
+  [ ("{ z == 101 } => { a = 10 }", (True, M.fromList [("a",10)]))
 {-  , ("{ z== 100} => { a= 10}", 0.0)
   , ("{z==121 } => { a=10 }", 0.0) 
   , ("{a==100} => { a = 10 }", 0.0)
@@ -98,7 +99,7 @@ simpleEventParseTests =
 -- | testmap containing a set of molecules and their 
 -- concentrations
 testMap_1 :: MoleculeMap
-testMap_1 = M.fromList [("x",1000),("y",2000),("z",100)]
+testMap_1 = M.fromList [("x",1000),("y",2000),("z",101)]
 
 -- | a simulation time
 time_1 :: Double
@@ -127,8 +128,8 @@ main = putStrLn "\n\n\nTesting Input Parser"
 
 
   -- check event expressions
-  (putStr $ color_string Cyan "\n\nEvent Expression tests:\n")
-  >> let eventContentOut = execWriter $ event_content_test_driver 
+  (putStr $ color_string Cyan "\n\nEvent Trigger tests:\n")
+  >> let eventContentOut = execWriter $ event_trigger_test_driver 
            testMap_1 time_1 simpleEventParseTests
      in
   examine_output eventContentOut >>= \eventContentStatus ->
@@ -163,14 +164,14 @@ event_parser_test_driver mol time (x:xs) =
           
 
 
--- | this driver parses the event expression and checks their
--- content. This test really only makes sense if the parser can 
--- parse the expressions in the first place, hence run 
--- event_parser_test_driver first to catch all parse failures first.
-event_content_test_driver :: MoleculeMap -> Double -> [TestCase] 
+-- | this driver parses the event expression and checks if the
+-- trigger expression evaluates properly.
+-- This parser should be run after the proper parsing has been
+-- verified via event_parser_test_driver
+event_trigger_test_driver :: MoleculeMap -> Double -> [TestCase] 
             -> Writer [TestResult] ()
-event_content_test_driver _   _    []     = return ()
-event_content_test_driver mol time (x:xs) =
+event_trigger_test_driver _   _    []     = return ()
+event_trigger_test_driver mol time (x:xs) =
 
   let expr            = fst x
       expectedTrigger = fst . snd $ x
@@ -183,20 +184,55 @@ event_content_test_driver mol time (x:xs) =
       Right event -> 
         
         -- make sure the trigger expression evaluated properly
-        case check_trigger_expression mol expectedTrigger event of
-          False -> tell [TestResult False expr "" ("bad parse")]
-          True  -> tell [TestResult True expr "" ("good parse")]
-                   >> event_parser_test_driver mol time xs
+        let
+          outTrigger = check_trigger mol time expectedTrigger event 
+        in
+          case outTrigger of
+            False -> tell [TestResult False expr (show expectedTrigger)
+                           (show outTrigger)]
+            True  -> tell [TestResult True expr "" ("good parse")]
+                       >> event_trigger_test_driver mol time xs
  
 
+-- | this driver parses the event expression and checks their
+-- content. This test really only makes sense if the parser can 
+-- parse the expressions in the first place, hence run 
+-- event_parser_test_driver first to catch all parse failures first.
+{-event_trigger_test_driver :: MoleculeMap -> Double -> [TestCase] 
+            -> Writer [TestResult] ()
+event_trigger_test_driver _   _    []     = return ()
+event_trigger_test_driver mol time (x:xs) =
+
+  let expr            = fst x
+      expectedTrigger = fst . snd $ x
+      expectedCounts  = snd . snd $ x 
+  in
+
+    -- parse expression
+    case runParser parse_events initialModelState "" expr of
+      Left er     -> tell [TestResult False expr "" (show er)]
+      Right event -> 
+        
+        -- make sure the trigger expression evaluated properly
+        let
+          outTrigger = check_trigger mol time expectedTrigger event 
+        in
+          case outTrigger of
+            False -> tell [TestResult False expr (show expectedTrigger)
+                           (show outTrigger)]
+            True  -> tell [TestResult True expr "" ("good parse")]
+                       >> event_trigger_test_driver mol time xs
+-} 
 
 -- | given an Event and a MoleculeMap check that the trigger
 -- evaluates to the expected value
-check_trigger_expression :: MoleculeMap -> Bool -> Event
+check_trigger :: MoleculeMap -> Double -> Bool -> Event
                          -> Bool
-check_trigger_expression map want (Event { evtTrigger = trigger }) =
-  True
-
+check_trigger map t expected (Event { evtTrigger = trigger }) =
+  computed == expected
+  
+  where
+    computed = compute_trigger map t trigger
 
 
 -- | examine the output of a test routine

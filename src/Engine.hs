@@ -19,7 +19,8 @@
 --------------------------------------------------------------------}
 
 -- | the main compute Engine
-module Engine ( create_initial_output
+module Engine ( compute_trigger
+              , create_initial_output
               , create_initial_state
               , gillespie_driver
               , module GenericModel
@@ -137,15 +138,23 @@ handle_single_event :: Event -> MoleculeMap -> Double -> MoleculeMap
 handle_single_event evt molMap t =
   let
     trigger      = evtTrigger evt
-    leftTrigger  = rpn_compute molMap t (trigLeftExpr trigger)
-    rightTrigger = rpn_compute molMap t (trigRightExpr trigger)
-    triggerOp    = trigRelation trigger
-    triggerVal   = leftTrigger `triggerOp` rightTrigger
     actions      = evtActions evt
+    triggerVal   = compute_trigger molMap t trigger
   in 
     if triggerVal
       then execute_actions actions molMap t 
       else molMap
+
+
+
+-- | compute the value of a trigger
+compute_trigger :: MoleculeMap -> Double -> EventTrigger -> Bool
+compute_trigger molMap t trigger = leftTrigger `triggerOp` rightTrigger
+
+  where
+    leftTrigger  = rpn_compute molMap t (trigLeftExpr trigger)
+    rightTrigger = rpn_compute molMap t (trigRightExpr trigger)
+    triggerOp    = trigRelation trigger
 
 
 

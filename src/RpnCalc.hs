@@ -21,9 +21,7 @@
 -- | RpnCalc defines the data structures and a calculator engine
 -- for computing mathematical expressions that have been parsed
 -- into reverse polish notations
-module RpnCalc ( internal_rpn_compute
-               , rpn_compute 
-               ) where
+module RpnCalc ( rpn_compute ) where
 
 
 -- imports 
@@ -42,8 +40,8 @@ import RpnData
 -- with respect to the variables, i.e., all variables in
 -- the stack are assumed to exist in the MoleculeMap
 rpn_compute :: MoleculeMap -> Double -> RpnStack -> Double
-rpn_compute _      _    [(Number x)] = x
-rpn_compute molMap theTime xs           = num 
+rpn_compute _      _   (RpnStack [(Number x)]) = x
+rpn_compute molMap theTime (RpnStack xs)       = num 
 
   where
     (Number num) = head . foldl evaluate [] $ xs
@@ -67,37 +65,3 @@ rpn_compute molMap theTime xs           = num
 
     evaluate ys item = item:ys
 
-
-
--- | computes an expressions based on an rpn stack
--- NOTE: This function is intended to be used for
--- testing or RPN stacks only. All encountered variable 
--- names are replaced by defaultVar. 
-
--- | default variable used to replace all encountered
--- variable. Its value is arbitrary
-defaultVar :: Double
-defaultVar = 47.0
-
-internal_rpn_compute :: MoleculeMap -> Double -> RpnStack -> Double
-internal_rpn_compute _      _       [(Number x)] = x
-internal_rpn_compute molMap theTime xs           = num 
-
-  where
-    (Number num) = head . foldl evaluate [] $ xs
-
-    -- evaluate unary function (sin, cos, ..)
-    evaluate ((Number x):ys) (UnaFunc f) = 
-      (Number $ f x):ys
-
-    -- evaluate binary function (*,+,..)
-    evaluate ((Number x):(Number y):ys) (BinFunc f) =
-      (Number $ f y x):ys
-
-    -- extrace current time
-    evaluate ys (Time) = (Number theTime):ys
-
-    -- extract molecule variable
-    evaluate ys (Variable x) = (Number $ defaultVar):ys
-
-    evaluate ys item = item:ys

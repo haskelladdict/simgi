@@ -37,13 +37,13 @@ import TokenParser
 -- | parses a mathematical infix expression and converts
 -- into a stack in rpn
 parse_infix_to_rpn :: CharParser ModelState RpnStack 
-parse_infix_to_rpn = add_term -- >>= \inp -> trace (show inp) (return inp)
+parse_infix_to_rpn = RpnStack <$> add_term 
                   <?> "infix math expression"
 
 
 
 -- | parser for expressions chained via "+" 
-add_term :: CharParser ModelState RpnStack
+add_term :: CharParser ModelState [RpnItem]
 add_term = concat . insert_adds <$> 
              sub_term `sepBy` (reservedOp "+")
         <?> "addition term"
@@ -55,7 +55,7 @@ add_term = concat . insert_adds <$>
 
 
 -- | parser for expressions chained via "-"
-sub_term :: CharParser ModelState RpnStack
+sub_term :: CharParser ModelState [RpnItem]
 sub_term = concat . insert_subs <$> 
              div_term `sepBy` (reservedOp "-")
         <?> "subtraction term"
@@ -67,7 +67,7 @@ sub_term = concat . insert_subs <$>
 
 
 -- | parser for expressions chained via "*" 
-div_term :: CharParser ModelState RpnStack
+div_term :: CharParser ModelState [RpnItem]
 div_term = concat . insert_divs <$> 
              mul_term `sepBy` (reservedOp "/")
         <?> "division term"
@@ -79,7 +79,7 @@ div_term = concat . insert_divs <$>
 
 
 -- | parser for expressions chained via "/"
-mul_term :: CharParser ModelState RpnStack
+mul_term :: CharParser ModelState [RpnItem]
 mul_term = concat . insert_muls <$> 
              exp_term `sepBy` (reservedOp "*")
         <?> "product term"
@@ -91,7 +91,7 @@ mul_term = concat . insert_muls <$>
 
 
 -- | parser for potentiation operations "^"
-exp_term :: CharParser ModelState RpnStack
+exp_term :: CharParser ModelState [RpnItem]
 exp_term = concat . insert_exps <$> (whiteSpace *> factor) `sepBy` (reservedOp "^")
         <?> "exponent"
 
@@ -103,7 +103,7 @@ exp_term = concat . insert_exps <$> (whiteSpace *> factor) `sepBy` (reservedOp "
 
 -- | parser for individual factors, i.e, numbers,
 -- variables or operations
-factor :: CharParser ModelState RpnStack
+factor :: CharParser ModelState [RpnItem]
 factor = try parse_single_number  -- need try due to the unary "-"
       <|> try signed_parenthesis  -- (otherwise we get stuck)
       <|> parse_functions
@@ -114,7 +114,7 @@ factor = try parse_single_number  -- need try due to the unary "-"
 
 -- | parse all operations of type (Double -> Double)
 -- we currently know about
-parse_functions :: CharParser ModelState RpnStack
+parse_functions :: CharParser ModelState [RpnItem]
 parse_functions = (msum $ extract_ops builtinFunctions)
                <?> "builtin unary function"
   where
@@ -135,7 +135,7 @@ parse_functions = (msum $ extract_ops builtinFunctions)
 -- | parse a potentially signed expression enclosed in parenthesis.
 -- In the case of parenthesised expressions we 
 -- parse -(...) as (-1.0)*(...)
-signed_parenthesis :: CharParser ModelState RpnStack
+signed_parenthesis :: CharParser ModelState [RpnItem]
 signed_parenthesis = push_parens <$> parse_sign <*> parens add_term
                   <?> "signed parenthesis"
 
@@ -148,7 +148,7 @@ signed_parenthesis = push_parens <$> parse_sign <*> parens add_term
 -- to double
 -- NOTE: Due to the notFollowedBy this parser can not be used
 -- with 'many' and other parser combinators.
-parse_single_number :: CharParser ModelState RpnStack
+parse_single_number :: CharParser ModelState [RpnItem]
 parse_single_number = push <$> (parse_number <* notFollowedBy alphaNum)
                    <?> "signed integer or double"
   where
@@ -176,7 +176,7 @@ parse_sign = option 1.0 ( whiteSpace *> char '-' *> pure (-1.0) )
 
 
 -- | this is how valid variable names have to look like
-parse_variable :: CharParser ModelState RpnStack
+parse_variable :: CharParser ModelState [RpnItem]
 parse_variable = 
   push <$> parse_sign 
   <*> ((:) <$> letter <*> many (alphaNum <?> "") <* whiteSpace)

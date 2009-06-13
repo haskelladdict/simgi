@@ -22,7 +22,7 @@
 -- for computing mathematical expressions that have been parsed
 -- into reverse polish notations
 module RpnData ( RpnItem(..)
-               , RpnStack
+               , RpnStack(..)
                ) where
 
 
@@ -38,9 +38,58 @@ data RpnItem = Time
                | UnaFunc (Double -> Double) 
                | BinFunc (Double -> Double -> Double)
 
-type RpnStack = [RpnItem]
+
+-- | RpnStack describes a computation stored in a stack of
+-- RpnItems
+newtype RpnStack = RpnStack { toList :: [RpnItem] }
 
 
+-- | make RpnStack an instance of Eq. 
+-- We compare two RpnStacks by computing them and replacing
+-- each occuring Variable by a default value. This should
+-- be ok in all but some pathological cases.
+instance Eq RpnStack where
+  
+  x == y  = (internal_rpn_compute x) == (internal_rpn_compute y)
+
+
+-- | computes an expressions based on an rpn stack
+-- NOTE: This function is intended to be used for
+-- the Eq instance of RpnItem only!
+-- names are replaced by defaultVar. 
+
+-- | default variable used to replace all encountered
+-- variable. Its value is arbitrary
+defaultVar :: Double
+defaultVar = 47.0
+
+internal_rpn_compute :: RpnStack -> Double
+internal_rpn_compute (RpnStack [(Number x)]) = x
+internal_rpn_compute (RpnStack xs)           = num 
+
+  where
+    (Number num) = head . foldl evaluate [] $ xs
+
+    -- evaluate unary function (sin, cos, ..)
+    evaluate ((Number x):ys) (UnaFunc f) = 
+      (Number $ f x):ys
+
+    -- evaluate binary function (*,+,..)
+    evaluate ((Number x):(Number y):ys) (BinFunc f) =
+      (Number $ f y x):ys
+
+    -- extrace current time
+    evaluate ys (Time) = (Number defaultVar):ys
+
+    -- extract molecule variable
+    evaluate ys (Variable x) = (Number defaultVar):ys
+
+    evaluate ys item = item:ys
+
+
+
+-- | a pretty lame show instance
+-- use only for debugging purposes
 instance Show RpnItem where
   show (Time)       = "TIME"
   show (Number x)   = show x

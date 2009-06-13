@@ -1,6 +1,5 @@
 include ../test_helpers/make_common
 
-SIMGI_PATH=${SRC_LOCATION}/simgi
 
 default: check
 
@@ -11,7 +10,7 @@ check:
 	@echo
 	@echo "Running reversible reaction test."
 	@echo "This may take a while ...."
-	@./run_test.sh ${SIMGI_PATH}
+	@./run_test.sh $(SIMGI_PATH)
 	@echo
 	
 

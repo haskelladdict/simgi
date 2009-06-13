@@ -4,3 +4,4 @@ GHC_FLAGS_DEVEL = -O -Wall -fwarn-simple-patterns -fwarn-tabs -fwarn-incomplete-
 
 SRC_LOCATION=../../src
 HELPER_LOCATION=../test_helpers
+SIMGI_PATH=$(SRC_LOCATION)/simgi

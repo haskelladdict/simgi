@@ -305,7 +305,8 @@ parse_reaction = setup_reaction
       case order of
         1 -> theFunc
         _ -> let mult = 1.0/(avogadroNum * volume^(order-1)) in
-               Function $ stack ++ [Number mult,BinFunc (*)]
+               Function . RpnStack $ (toList stack) 
+                                     ++ [Number mult,BinFunc (*)]
 
 
 
@@ -337,14 +338,6 @@ parse_reaction = setup_reaction
               generate_lambda :: Double -> Double -> Double
               generate_lambda 1 x   = x
               generate_lambda n x   = (x-n+1) * generate_lambda (n-1) x   
-
-
--- | parse rate parses a reaction rate. This can either be a simple
--- constant of a full blown infix math expression.
--- Reaction rates must be enclosed by colons ":"
-parse_rate :: CharParser ModelState Rate
-parse_rate = braces parse_rate_expression
-
 
 
 -- | parse list of reactants/products of reaction
@@ -404,14 +397,14 @@ parse_def_block blockName parser =
 
 
 -- | parse a simple rate expression
--- FIXME: We can not re-use parse_expression below for
--- now since currently the order of function/constant parsing 
+-- FIXME: We can not re-use parse_expression below 
+-- since currently the order of function/constant parsing 
 -- has to be reversed otherwise rates are always parsed
--- as trivial Functions
-parse_rate_expression :: CharParser ModelState MathExpr
-parse_rate_expression = (try parse_constant_expression )
-                <|> parse_function_expression 
-                <?> "constant or function expression"
+-- as trivial Functions. 
+parse_rate :: CharParser ModelState MathExpr
+parse_rate = (try (braces parse_constant_expression))
+          <|> braces parse_function_expression 
+          <?> "constant or function expression"
 
 
 

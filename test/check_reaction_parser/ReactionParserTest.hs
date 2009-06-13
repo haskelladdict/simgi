@@ -30,7 +30,7 @@ import Prelude
 import System.Exit
 
 -- local imports
-import Engine
+--import Engine
 import GenericModel
 import PrettyPrint
 import InputParser
@@ -65,7 +65,7 @@ simpleReactParseTests :: [TestCase]
 simpleReactParseTests = 
   [ ("x + y -> z { 1e6 }",
     Reaction (Constant 1e6) 
-             [("x",id),("y",id)]
+             [("y",id),("x",id)]
              [("x",-1),("y",-1),("z",1)])
   ]
 

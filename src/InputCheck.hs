@@ -64,12 +64,12 @@ check_input (ModelState { molCount    = theMols
   -- functions
   rate_mols theRates = 
     let
-      stacks    = foldr extract_rate_func [] . map rate $ theRates
+      stacks    = foldr extract_rate_func [] . map rate $ theRates 
     in
       L.nub . concat . map (foldr extract_rate_vars []) $ stacks
 
       where
-        extract_rate_func (Function a) acc = a:acc
+        extract_rate_func (Function a) acc = (toList a):acc
         extract_rate_func _            acc = acc
 
         extract_rate_vars (Variable a) acc = a:acc

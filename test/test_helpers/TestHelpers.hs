@@ -23,6 +23,7 @@
 module TestHelpers ( examine_output
                    , testModelState
                    , TestResult(TestResult)
+                   , defaultResult
                    ) where
 
 
@@ -47,24 +48,24 @@ examine_output = foldM examine_output_h True
                  
   where
     examine_output_h :: Bool -> TestResult -> IO Bool
-    examine_output_h acc (TestResult status token target actual) = do
-      if status == True then do
+    examine_output_h acc (TestResult state tok targ act) = do
+      if state == True then do
           putStr   $ color_string Blue "["
           putStr   $ color_string White "OK"
           putStr   $ color_string Blue  "] "
           putStr   $ color_string Green " Successfully evaluated "
-          putStrLn $ color_string Yellow token
+          putStrLn $ color_string Yellow tok
           return $ acc && True
         else do
           putStr   $ color_string Blue "["
           putStr   $ color_string Red "TROUBLE"
           putStr   $ color_string Blue "] "
           putStr   $ color_string Green " Failed to evaluate "
-          putStrLn $ color_string Yellow token
+          putStrLn $ color_string Yellow tok
           putStrLn $ color_string Green "\t\texpected : " 
-                       ++ (show target)
+                       ++ (show targ)
           putStrLn $ color_string Green "\t\tgot      : " 
-                       ++ (show actual)
+                       ++ (show act)
           return False
 
 
@@ -81,7 +82,11 @@ data TestResult = TestResult { status :: Bool
 
 
 defaultResult :: TestResult
-defaultResult = TestResult False "" "" ""
+defaultResult = TestResult { status = False 
+                           , token  = ""
+                           , target = ""
+                           , actual = ""
+                           }
 
 
 -- | initial model state we use for our unit tests

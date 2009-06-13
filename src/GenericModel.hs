@@ -42,11 +42,11 @@ import Prelude
 
 
 -- local imports
-import ExtraFunctions
+--import ExtraFunctions
 import RpnData
 
 
-import Debug.Trace 
+--import Debug.Trace 
 
 
 -- | A MoleculeMap keeps track of the current number of molecules
@@ -60,18 +60,13 @@ data MathExpr = Constant Double | Function RpnStack
 
 
 -- | make MathExpr an instance of Eq
+-- We allow only comparison of constants with each other
+-- and RPN stacks with each other
 instance Eq MathExpr where
-  
-  x == y = compare_mathexpr x y
-
-    where
-    -- | compare two MathExpr and return True if the are
-    -- equal and False otherwise
-    compare_mathexpr :: MathExpr -> MathExpr -> Bool
-    compare_mathexpr (Constant n) (Constant m) = is_equal n m
-    compare_mathexpr _ _            = trace ("are here") $ False
---  compare_mathexpr (
-
+ 
+  (Constant x)  == (Constant y)  = x == y
+  (Function f1) == (Function f2) = f1 == f2
+  _             == _             = False
 
 
 
@@ -86,22 +81,24 @@ defaultRateList :: RateList
 defaultRateList = [] 
 
 
+-- | an actor is a description of a molecular species participating
+-- in a reaction (needed for computing h_mu in Gillespie's 
+-- notation) and a function mapping a molecule count to the
+-- proper h_mu value (needed e.g. for cases where we have
+-- 2X terms where h_mu would be 0.5*X*(X-1).
+type Actor = (String, Double -> Double)
+
+
 
 -- | for each elementary reaction i we need to keep track of
 --   
---   rate: the reaction rate c_i or rate function 
---   
---   aList: description of which molecular species are participating
---     in a reaction (needed for computing h_mu in Gillespie's 
---     notation) and a function mapping a molecule count to the
---     proper h_mu value (needed e.g. for cases where we have
---     2X terms where h_mu would be 0.5*X*(X-1).
---   
---   react: a list of tuples (i,j) describing that the reaction
---     changes the count of molecule i by j 
+--   rate  : the reaction rate c_i or rate function 
+--   actors: a list of Actor
+--   react : a list of tuples (i,j) describing that the reaction
+--           changes the count of molecule i by j 
 --
 data Reaction = Reaction { rate       :: Rate
-                         , actors     :: [(String,Double -> Double)]
+                         , actors     :: [Actor]
                          , reaction   :: [(String,Int)]
                          }
 
@@ -126,17 +123,28 @@ instance Eq Reaction where
 
       let
         rateComp  = rate1 == rate2
---        actorComp = compare_actors actors1 actors2
+        actorComp = compare_actors actors1 actors2
 --        reactComp = compare_reactions reaction1 reaction2
       in
-        rateComp -- && actorComp && reactComp
+        rateComp && actorComp -- && reactComp
 
 
-    -- | compare two reaction rates
-    -- compare_rates :: Rate -> Rate -> Bool
-    -- compare_rates 
+    -- | compare two actors
+    compare_actors :: [Actor] -> [Actor] -> Bool
+    compare_actors [] []  = True
+    compare_actors xs ys  = and $ zipWith compare_actor_elem xs ys
 
 
+    -- | compare an two actor elements
+    compare_actor_elem :: Actor -> Actor -> Bool
+    compare_actor_elem act1 act2 =
+      
+      let
+        testNum  = 133.0 :: Double
+        nameComp = fst act1 == fst act2
+        funcComp = (snd act1) testNum == (snd act2) testNum
+      in
+        nameComp && funcComp
 
 
 

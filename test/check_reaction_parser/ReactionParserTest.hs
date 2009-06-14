@@ -30,10 +30,10 @@ import Prelude
 import System.Exit
 
 -- local imports
---import Engine
 import GenericModel
 import PrettyPrint
 import InputParser
+import RpnData
 import TestHelpers
 import TokenParser
 
@@ -67,6 +67,18 @@ simpleReactParseTests =
     Reaction (Constant 1e6) 
              [("y",id),("x",id)]
              [("x",-1),("y",-1),("z",1)])
+
+  , ("x + y + z -> w { 10.3 }",
+    Reaction (Constant 10.3)
+             [("z",id),("y",id),("x",id)]
+             [("x",-1),("y",-1),("z",-1),("w",1)])
+
+  , ("x + y + z -> w { x*y }",
+    Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
+              BinFunc (*)])
+             [("z",id),("y",id),("x",id)]
+             [("x",-1),("y",-1),("z",-1),("w",1)])
+
   ]
 
 

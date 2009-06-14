@@ -38,6 +38,7 @@ module GenericModel ( defaultRateList
 -- imports
 import Control.Monad.State
 import qualified Data.Map as M
+import Data.List((\\))
 import Prelude
 
 
@@ -46,7 +47,7 @@ import Prelude
 import RpnData
 
 
---import Debug.Trace 
+import Debug.Trace 
 
 
 -- | A MoleculeMap keeps track of the current number of molecules
@@ -64,9 +65,9 @@ data MathExpr = Constant Double | Function RpnStack
 -- and RPN stacks with each other
 instance Eq MathExpr where
  
-  (Constant x)  == (Constant y)  = x == y
-  (Function f1) == (Function f2) = f1 == f2
-  _             == _             = False
+  (Constant x)  == (Constant y)  =   x  == y
+  (Function f1) == (Function f2) =   f1 == f2
+  _             == _             =   False
 
 
 
@@ -124,9 +125,12 @@ instance Eq Reaction where
       let
         rateComp  = rate1 == rate2
         actorComp = compare_actors actors1 actors2
---        reactComp = compare_reactions reaction1 reaction2
+
+        -- since reaction is assembled from Data.Map in the
+        -- input parser we can't use == here
+        reactComp = ( reaction1 \\ reaction2 ) == []
       in
-        rateComp && actorComp -- && reactComp
+        rateComp && actorComp && reactComp
 
 
     -- | compare two actors

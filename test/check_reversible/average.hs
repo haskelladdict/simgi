@@ -23,6 +23,10 @@
 module Main where
 
 
+-- imports
+import Prelude
+
+
 main :: IO ()
 main = getContents
        >>= \content -> 

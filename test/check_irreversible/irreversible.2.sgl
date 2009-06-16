@@ -1,0 +1,19 @@
+
+def parameters
+  time       = 1.0
+  systemVol  = 1.25e-19 
+  outputIter = 50000 
+  outputFreq = 100
+  outputFile = "irreversible.2.dat"
+end
+
+def molecules
+  a 1000
+  b 1000
+  c 0
+end
+
+def reactions
+  b -> c  { 1e6 }
+end 
+

@@ -43,11 +43,10 @@ import Prelude
 
 
 -- local imports
---import ExtraFunctions
 import RpnData
 
 
-import Debug.Trace 
+--import Debug.Trace 
 
 
 -- | A MoleculeMap keeps track of the current number of molecules

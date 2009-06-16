@@ -311,11 +311,14 @@ parse_reaction = setup_reaction
 
 
     -- | create the list holding the molecule number changes for 
-    -- this reaction
+    -- this reactioni. If the net change in molecule number is
+    -- zero ( a nop) we remove the action.
     create_react r p = let 
                          reacts = M.map (*(-1)) r 
                        in
-                         M.assocs $ M.unionWith (+) reacts p
+                         M.assocs . snd . M.partition (==0)
+                          $ M.unionWith (+) reacts p
+      
 
 
     -- | create the list containing the h factors

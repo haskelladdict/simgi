@@ -79,6 +79,45 @@ simpleReactParseTests =
              [("z",id),("y",id),("x",id)]
              [("x",-1),("y",-1),("z",-1),("w",1)])
 
+  , ("2x + 2y + z -> nil { exp(-TIME) }",
+    Reaction (Function . RpnStack $ [Variable "TIME", Number (-1.0)
+              , BinFunc (*), UnaFunc exp])
+             [("z",id),("y",\a -> 0.5 * a * (a-1))
+              ,("x",\a -> 0.5 * a * (a-1))]
+             [("x",-2),("y",-2),("z",-1)])
+
+  , ("2x + y + z -> 2x + 20y + 5z { x+y+z }",
+    Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
+              BinFunc (+), Variable "z", BinFunc (+)])
+             [("z",id),("y",id),("x",\a -> 0.5 * a * (a-1))]
+             [("y",19),("z",4)])
+
+  , ("2x + y + z -> 2x + 20y + 5z { x*   y*  z }",
+    Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
+              BinFunc (*), Variable "z", BinFunc (*)])
+             [("z",id),("y",id),("x",\a -> 0.5 * a * (a-1))]
+             [("y",19),("z",4)])
+
+  , ("2   x+ y+ z-> 2  x + 20 y + 5z{x*y   *  z }",
+    Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
+              BinFunc (*), Variable "z", BinFunc (*)])
+             [("z",id),("y",id),("x",\a -> 0.5 * a * (a-1))]
+             [("y",19),("z",4)])
+
+  , ("x + y + z -> x + y + z { x-x+y-y+z-z }",
+    Reaction (Function . RpnStack $ [Number 0.0])
+             [("z",id),("y",id),("x",id)]
+             [])
+
+  , ("nil -> x + y + z { x-x+y-y+z-z }",
+    Reaction (Function . RpnStack $ [Number 0.0])
+             []
+             [("x",1),("y",1),("z",1)])
+
+  , ("nil -> nil { sqrt(2.0) }",
+    Reaction (Function . RpnStack $ [Number 2.0, UnaFunc sqrt])
+             []
+             [])
   ]
 
 

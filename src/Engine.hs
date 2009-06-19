@@ -33,6 +33,8 @@ import Control.Monad.State
 import qualified Data.Map as M
 import Prelude
 import Text.Printf
+import System.Random(randomR)
+import qualified System.Random.Mersenne.Pure64 as MT
 import System.IO
 
 
@@ -41,7 +43,7 @@ import ExtraFunctions
 import GenericModel
 import RpnCalc
 
---import Debug.Trace
+-- import Debug.Trace
 
 
 -- | main simulation driver
@@ -56,8 +58,11 @@ gillespie_driver handle simTime dmpIter state =
     (curTime, newState) = update_state dmpIter outState
     reversedOutput      = reverse output
   in
+    -- write output to console and the output file
     (write_info $ head reversedOutput)
     >> (write_data handle reversedOutput)
+
+    -- next iteration if we're not at the end
     >> if curTime >= simTime
          then return ()
          else gillespie_driver handle simTime dmpIter newState
@@ -80,7 +85,7 @@ run_gillespie = get
 
   >>= \inState@(ModelState { molCount    = in_mols
                            , reactions   = in_reacts
-                           , randNums    = (r1:r2:randRest)
+                           , randGen     = rGen
                            , events      = molEvents
                            , currentTime = t
                            , currentIter = it
@@ -92,21 +97,25 @@ run_gillespie = get
 
 
     -- compute and update the next state
-    let out_rates  = compute_rates in_reacts in_mols t []
-        a_0        = sum out_rates
-        tau        = (-1.0/a_0) * log(r1)
-        t_new      = t+tau
-        mu         = get_mu (a_0*r2) out_rates
-        out_mols   = adjust_molcount in_mols in_reacts mu
-        evt_mols   = handle_events molEvents out_mols t_new
-        new_output = generate_output freq it t_new out_mols output
-        newState   = inState { molCount    = evt_mols
-                             , rates       = out_rates
-                             , randNums    = randRest
-                             , currentTime = t_new
-                             , currentIter = it+1
-                             , outputList  = new_output
-                             }
+    let 
+      -- generate two random numbers
+      (r1,rGen1) = randomR (0.0 :: Double, 1.0) rGen
+      (r2,rGen2) = randomR (0.0 :: Double, 1.0) rGen1
+      out_rates  = compute_rates in_reacts in_mols t []
+      a_0        = sum out_rates
+      tau        = (-1.0/a_0) * log(r1)
+      t_new      = t+tau
+      mu         = get_mu (a_0*r2) out_rates
+      out_mols   = adjust_molcount in_mols in_reacts mu
+      evt_mols   = handle_events molEvents out_mols t_new
+      new_output = generate_output freq it t_new out_mols output
+      newState   = inState { molCount    = evt_mols
+                           , rates       = out_rates
+                           , randGen     = rGen2
+                           , currentTime = t_new
+                           , currentIter = it+1
+                           , outputList  = new_output
+                           }
     in
 
     -- this prevents simulation from getting stuck
@@ -280,14 +289,14 @@ create_initial_output (ModelState { molCount = initialMols }) =
 
 
 -- | set up the initial state
-create_initial_state:: ModelState -> [Double] -> Output -> ModelState
-create_initial_state state rand output = 
+create_initial_state:: ModelState -> Output -> ModelState
+create_initial_state state@(ModelState { seed = theSeed}) out = 
 
   state { rates       = defaultRateList
-        , randNums    = rand
+        , randGen     = MT.pureMT theSeed
         , currentTime = 0.0
         , currentIter = 1
-        , outputList  = [output]
+        , outputList  = [out]
         }
 
 

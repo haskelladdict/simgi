@@ -24,17 +24,20 @@ module CommandLine ( process_commandline
                    ) where
 
 -- imports
+import Data.Word
 import Prelude
 import System
 import System.Console.GetOpt
 
 -- local imports
+import GenericModel
 import Messages
 
 
 -- | main driver for command line processing
-process_commandline :: [String] -> IO ((CmdlRequest,String), [String])
-process_commandline args = 
+process_commandline :: ModelState -> [String] 
+                    -> IO (ModelState, [String])
+process_commandline state args = 
 
   let 
     (actions, nonOpts, _) = getOpt RequireOrder options args
@@ -45,13 +48,14 @@ process_commandline args =
       Options { cmdlRequest = request 
               , cmdlString   = pattern
               } = opts
+      newState = add_seed request pattern state 
     in
-      return ((request,pattern),nonOpts) 
+      return (newState,nonOpts) 
 
 
 
 -- | possible options for commandline
-data CmdlRequest = None | Help
+data CmdlRequest = None | Seed 
 
 
 -- | data structure for keeping track of 
@@ -74,7 +78,10 @@ defaultOptions = Options {
 options :: [OptDescr (Options -> IO Options)]
 options = [
   Option ['v'] ["version-info"] (NoArg version_info) 
-         "show version information"]
+         "show version information",
+  Option ['s'] ["seed"] (ReqArg seed_value "SEED") "seed value"
+ ]
+
 
 
 -- | extractor function for version info
@@ -83,3 +90,16 @@ version_info _ =
   do
     show_version
     exitWith ExitSuccess
+
+
+-- | extract the seed value 
+seed_value :: String -> Options -> IO Options
+seed_value arg opt = 
+  return opt { cmdlString = arg, cmdlRequest = Seed } 
+
+
+-- | if the user supplied a seed value on the commandline use it
+-- otherwise use the default
+add_seed :: CmdlRequest -> String -> ModelState -> ModelState
+add_seed None _ state = state
+add_seed Seed val state = state { seed = read val :: Word64 }

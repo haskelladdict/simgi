@@ -104,7 +104,7 @@ builtinFunctions = [ ("sqrt",sqrt)
 -- | all other keywords that are not regular functions
 keywords :: [String]
 keywords = [ "def", "molecules", "reactions", "time", "outputIter"
-           , "nil", "outputFreq", "outputFile", "systemVol"
+           , "nil", "outputFreq", "outputFile", "systemVol", "seed"
            ]
 
 operators :: [String]

@@ -39,7 +39,10 @@ module GenericModel ( defaultRateList
 import Control.Monad.State
 import qualified Data.Map as M
 import Data.List((\\))
+import Data.Word
 import Prelude
+import qualified System.Random.Mersenne.Pure64 as MT
+
 
 
 -- local imports
@@ -195,6 +198,8 @@ data ModelState = ModelState { molCount    :: MoleculeMap
                              , rates       :: RateList
                              , reactions   :: [Reaction]
                              , randNums    :: [Double]
+                             , seed        :: Word64
+                             , randGen     :: MT.PureMT
                              , events      :: [Event]
                              , systemVol   :: Double
                              , currentTime :: Double
@@ -227,6 +232,8 @@ initialModelState = ModelState { molCount    = M.empty
                                , reactions   = []
                                , randNums    = []
                                , events      = []
+                               , seed        = 1
+                               , randGen     = MT.pureMT 1
                                , systemVol   = 1.0
                                , currentTime = 0.0
                                , currentIter = 0

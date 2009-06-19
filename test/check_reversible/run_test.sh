@@ -17,7 +17,7 @@ for ((counter=0; counter <= 100; counter++)); do
   printf "."
 
   # run and process
-  ${simgi_exe} reversible.sgl >& /dev/null 
+  ${simgi_exe} -s ${counter} reversible.sgl >& /dev/null 
   tail -n 400 reversible.dat | gawk ' { print $5}' | ./average >> ${globalFile} || return 1
 
   # unlink

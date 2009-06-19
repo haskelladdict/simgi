@@ -24,7 +24,7 @@ module Main where
 -- imports
 import Prelude
 import System.IO
-import System.Random
+--import System.Random
 import System.Environment
 
 -- local imports
@@ -43,8 +43,9 @@ main :: IO ()
 main = 
 
   -- process command line arguments
-  getArgs >>= process_commandline 
-  >>= \((_,_),files) -> 
+  getArgs >>= process_commandline initialModelState
+  >>= \(state, files) -> 
+
 
   -- reject anything but a single input file
   if length files /= 1 
@@ -56,20 +57,18 @@ main =
       >>= \content -> 
 
         -- parse input file
-        case runParser input_parser initialModelState "" content of
+        case runParser input_parser state "" content of
           Left er           -> putStrLn (show er)
           Right parsedState -> 
             case check_input parsedState of
               Left err -> putStrLn err
-              Right _  -> newStdGen
-                >>= \gen -> 
+              Right _  -> 
 
                 -- set up simuation
                 let 
-                  rands         = randomRs (0,1) gen :: [Double] 
                   initialOutput = create_initial_output parsedState
                   initialState  = create_initial_state parsedState 
-                                  rands initialOutput
+                                   initialOutput
                   totalTime     = maxTime parsedState 
                   dataDumpIter  = maxIter parsedState
                   outFile       = outfileName parsedState

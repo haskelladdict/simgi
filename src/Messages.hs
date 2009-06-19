@@ -36,7 +36,7 @@ show_version = putStrLn "This is simgi v0.1 (C) 2009 Markus Dittrich"
 -- | show a brief startup message
 startup_message :: IO ()
 startup_message = show_version 
-  >> putStrLn "\nstarting simulation ..... here we go\n"
+  >> putStrLn "\nstarting simulation ...\n"
 
 
 

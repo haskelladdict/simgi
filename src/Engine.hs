@@ -51,10 +51,13 @@ import RpnCalc
 --    zero t_max is treated as being infinity 
 gillespie_driver :: Handle -> Double -> Integer -> ModelState -> IO ()
 gillespie_driver handle simTime dmpIter state =  
-  let (output, outState)  = runState run_gillespie $ state 
-      (curTime, newState) = update_state dmpIter outState
+  let 
+    (output, outState)  = runState run_gillespie $ state 
+    (curTime, newState) = update_state dmpIter outState
+    reversedOutput      = reverse output
   in
-    (write_output handle . reverse $ output)
+    (write_info $ head reversedOutput)
+    >> (write_data handle reversedOutput)
     >> if curTime >= simTime
          then return ()
          else gillespie_driver handle simTime dmpIter newState
@@ -289,19 +292,24 @@ create_initial_state state rand output =
 
 
 
--- | basic routine writing the simulation output to stdout
-write_output :: Handle -> [Output] -> IO ()
-write_output _ [] = return ()
-write_output handle ((Output {iteration = it, time = t, mols = m}):xs) = 
-  let header = (printf "%-10d %18.15g" it t) :: String
-      counts = create_count_string m
-  in
-    -- write molecule data to output file
-    hPutStrLn handle (header ++ counts)
+-- | routine for writing basic accounting info to stdout
+write_info :: Output -> IO ()
+write_info (Output {iteration = it, time = t}) = 
+    putStrLn $ printf "iteration: %-10d  --> time: %18.15g" it t 
 
-    -- write current iteration to stdout
-    >> (putStrLn $ "iteration | time   --->   " ++ header)
-    >> write_output handle xs
+
+
+-- | basic routine writing the simulation output to the 
+-- file handle corresponding to the output file
+write_data :: Handle -> [Output] -> IO ()
+write_data _ [] = return ()
+write_data handle ((Output {iteration = it, time = t, mols = m}):xs) = 
+  let 
+    header = (printf "%-10d %18.15g" it t) :: String
+    counts = create_count_string m
+  in
+    hPutStrLn handle (header ++ counts)
+    >> write_data handle xs
 
   where
     create_count_string :: MoleculeMap -> String

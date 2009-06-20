@@ -76,7 +76,10 @@ main =
 
                   -- open output file
                   openFile outFile WriteMode 
-                  >>= \handle -> startup_message
+                  >>= \handle -> 
+
+                  -- print initial startup info
+                  startup_message initialState
 
                   -- ready to run the simulation
                   >> gillespie_driver handle totalTime dataDumpIter 

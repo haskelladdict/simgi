@@ -24,19 +24,43 @@ module Messages ( show_version
                 , usage
                 ) where
 
+
 -- imports
 import Prelude
 
 
+-- local imports
+import GenericModel
+
+
 -- | show version info
 show_version :: IO ()
-show_version = putStrLn "This is simgi v0.1 (C) 2009 Markus Dittrich"
+show_version = putStrLn "This is simgi v0.2 (C) 2009 Markus Dittrich"
+
 
 
 -- | show a brief startup message
-startup_message :: IO ()
-startup_message = show_version 
+startup_message :: ModelState -> IO ()
+startup_message state = show_version
+  >> (putStrLn $ "\n-------- Simulation parameters ----------")
+  >> (putStrLn $ "rng seed              : " ++ (show simSeed))
+  >> (putStrLn $ "max time              : " ++ (show simTime) ++ " s")
+  >> (putStrLn $ "system volume         : " ++ (show simVol) ++ " m^3")
+  >> (putStrLn $ "data output frequency : " ++ (show simFreq))
+  >> (putStrLn $ "log output frequency  : " ++ (show simLogFreq))
+  >> (putStrLn $ "output filename       : " ++ simOutFile)
+  >> (putStrLn $ "-----------------------------------------")
   >> putStrLn "\nstarting simulation ...\n"
+
+
+  where
+    (ModelState { seed        = simSeed 
+                , maxTime     = simTime
+                , systemVol   = simVol
+                , maxIter     = simLogFreq
+                , outputFreq  = simFreq
+                , outfileName = simOutFile 
+                }) = state
 
 
 -- | provide brief usage info

@@ -20,8 +20,9 @@
 
 -- | main gsim driver
 module CommandLine ( process_commandline 
-                   , Options(..)
+                   , SimgiOpt(..)
                    ) where
+
 
 -- imports
 import Data.Word
@@ -34,6 +35,7 @@ import GenericModel
 import Messages
 
 
+
 -- | main driver for command line processing
 process_commandline :: ModelState -> [String] 
                     -> IO (ModelState, [String])
@@ -42,64 +44,77 @@ process_commandline state args =
   let 
     (actions, nonOpts, _) = getOpt RequireOrder options args
   in
-    foldl (>>=) ( return defaultOptions ) actions >>= \opts ->
+    foldl (>>=) ( return [] ) actions >>= \opts ->
 
     let 
-      Options { cmdlRequest = request 
-              , cmdlString   = pattern
-              } = opts
-      newState = add_seed request pattern state 
+      newState = process_options opts state 
     in
       return (newState,nonOpts) 
 
 
 
--- | possible options for commandline
-data CmdlRequest = None | Seed 
+-- | process all user provided commandline options and adjust
+-- the model state accordingly
+process_options :: [SimgiOpt] -> ModelState -> ModelState
+process_options [] state     = state
+process_options ( (SimgiOpt { cmdlRequest = req
+                            , cmdlString  = val }):xs) state =  
+
+  case req of 
+    Seed -> process_options xs ( state { seed = parse_seed val } )
+    _    -> process_options xs state -- ignore unknown requests
+
+  
+  where
+    parse_seed aSeed = floor (read aSeed :: Double) :: Word64 
 
 
--- | data structure for keeping track of 
--- selected command line options
-data Options = Options {
+
+-- | data structure describing all commandline options we know of
+data CmdlRequest = Seed 
+
+
+
+-- | data structure for keeping track of a specific user provided
+-- command line switch 
+data SimgiOpt = SimgiOpt {
   cmdlRequest :: CmdlRequest,
   cmdlString  :: String
 }
 
 
--- | default selections
-defaultOptions :: Options
-defaultOptions = Options {
-  cmdlRequest = None,
-  cmdlString  = ""
-}
-
 
 -- | available command line flags
-options :: [OptDescr (Options -> IO Options)]
+options :: [OptDescr ([SimgiOpt] -> IO [SimgiOpt])]
 options = [
   Option ['v'] ["version-info"] (NoArg version_info) 
          "show version information",
+  Option ['h'] ["help"] (NoArg help_msg) "show help message",
   Option ['s'] ["seed"] (ReqArg seed_value "SEED") "seed value"
  ]
 
 
 
 -- | extractor function for version info
-version_info :: Options -> IO Options
+version_info :: [SimgiOpt] -> IO [SimgiOpt]
 version_info _ =
   do
     show_version
     exitWith ExitSuccess
 
 
+
+-- | extractor function for help message
+help_msg :: [SimgiOpt] -> IO [SimgiOpt]
+help_msg _ =
+  do
+    usage
+    exitWith ExitSuccess
+
+
+
 -- | extract the seed value 
-seed_value :: String -> Options -> IO Options
+seed_value :: String -> [SimgiOpt] -> IO [SimgiOpt]
 seed_value arg opt = 
-  return opt { cmdlString = arg, cmdlRequest = Seed } 
+  return ( (SimgiOpt { cmdlString = arg, cmdlRequest = Seed }):opt)
 
-
--- | if the user supplied a seed value on the commandline use it
--- otherwise use the default
-add_seed :: CmdlRequest -> String -> ModelState -> ModelState
-add_seed None _ state = state
-add_seed Seed val state = state { seed = read val :: Word64 }

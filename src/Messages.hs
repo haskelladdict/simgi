@@ -39,7 +39,13 @@ startup_message = show_version
   >> putStrLn "\nstarting simulation ...\n"
 
 
-
 -- | provide brief usage info
 usage :: IO ()
-usage = putStrLn "Usage: simgi <input file>"
+usage = putStrLn "Usage: simgi [options] <input file>\n\n\
+        \Currently supported options are:\n\n\
+        \\t -s --seed <seed value> \n\
+        \\t       specify value for the rng starting seed.\n\n\
+        \\t -v --version-info \n\
+        \\t       print version info.\n\n\
+        \\t -h --help \n\
+        \\t       print this help message."

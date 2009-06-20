@@ -304,7 +304,7 @@ create_initial_state state@(ModelState { seed = theSeed}) out =
 -- | routine for writing basic accounting info to stdout
 write_info :: Output -> IO ()
 write_info (Output {iteration = it, time = t}) = 
-    putStrLn $ printf "iteration: %-10d  --> time: %18.15g" it t 
+    putStrLn $ printf "iteration: %-10d  --> time: %6.5g s" it t 
 
 
 

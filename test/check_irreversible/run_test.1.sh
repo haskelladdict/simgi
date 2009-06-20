@@ -45,13 +45,13 @@ done
 if [[ ${status} == 0 ]]; then
   echo
   echo
-  echo "Congratulations - the reversible reaction test 1 passed!"
+  echo "Congratulations - the irreversible reaction test 1 passed!"
   echo
   echo
 else
   echo
   echo
-  echo "Error - the reversible reaction test failed. Please check!"
+  echo "Error - the irreversible reaction test failed. Please check!"
   echo
   echo
 fi

@@ -1,6 +1,7 @@
 DESCRIPTION:
 ------------
 
+
 simgi is a stochastic simulator using the Gillespie algorithm [1,2].
 simgi is released under the GPL v3.
 

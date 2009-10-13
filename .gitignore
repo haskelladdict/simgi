@@ -6,4 +6,5 @@ src/simgi
 average
 RpnStackTest
 EventParserTest
+ReactionParserTest
 check_deviation

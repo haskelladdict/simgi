@@ -214,6 +214,36 @@ respective block commands and block content:
   incurred at each iteration and the use of complicated rate 
   expressions should therefore be avoided if possible.
 
+  
+**event block**: *<block name> = events*
+
+  An event block allows one to specify events which will occur during 
+  the simulation. Each event consists of a trigger and an associated
+  set of actions. Events are specified with ::
+
+     { trigger expression } => { action expression }
+
+  Here, ``trigger expression`` is of the form ::
+
+     <expression> <relational operator> <expression>
+
+  where ``<expression>`` can be any mathematical expression involving
+  numbers and instantaneous molecule counts. ``<relational operator>``
+  is any of ``>=``, ``<=``, ``==``, ``>``, and ``<``.
+
+  ``<action expression>`` consists of a semi-colon separated list of  
+  assignments ::
+
+  <String> = <expression> [; <String> = <expression>]
+
+ 
+  where ``<String>`` is a molecule name and ``<expression>`` any
+  mathematical expression involving numbers and instantaneous
+  molecule counts. 
+
+  Once a trigger expression evaluates to true during a given timestep,
+  the corresponding actions are carried out that same timestep.
+ 
 
 Example Input Files
 -------------------

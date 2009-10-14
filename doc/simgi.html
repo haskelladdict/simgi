@@ -3,14 +3,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
 <title>simgi - A Stochastic Gillespie Simulator for Molecular Systems</title>
 <meta name="author" content="Markus Dittrich" />
 <style type="text/css">
 
 /*
 :Author: David Goodger (goodger@python.org)
-:Id: $Id: html4css1.css 5196 2007-06-03 20:25:28Z wiemann $
+:Id: $Id: html4css1.css 5951 2009-05-18 18:03:10Z milde $
 :Copyright: This stylesheet has been placed in the public domain.
 
 Default cascading style sheet for the HTML output of Docutils.
@@ -158,11 +158,32 @@ h2.subtitle {
 hr.docutils {
   width: 75% }
 
-img.align-left {
-  clear: left }
+img.align-left, .figure.align-left{
+  clear: left ;
+  float: left ;
+  margin-right: 1em }
 
-img.align-right {
-  clear: right }
+img.align-right, .figure.align-right {
+  clear: right ;
+  float: right ;
+  margin-left: 1em }
+
+.align-left {
+  text-align: left }
+
+.align-center {
+  clear: both ;
+  text-align: center }
+
+.align-right {
+  text-align: right }
+
+/* reset inner alignment in figures */
+div.align-right {
+  text-align: left }
+
+/* div.align-center * { */
+/*   text-align: left } */
 
 ol.simple, ul.simple {
   margin-bottom: 1em }
@@ -217,8 +238,7 @@ p.topic-title {
 pre.address {
   margin-bottom: 0 ;
   margin-top: 0 ;
-  font-family: serif ;
-  font-size: 100% }
+  font: inherit }
 
 pre.literal-block, pre.doctest-block {
   margin-left: 2em ;
@@ -350,7 +370,7 @@ Nevertheless, for small systems (such as the examples in the
 </ul>
 <p>Building of <strong>simgi</strong> can be done either via</p>
 <ul class="simple">
-<li>the standard <tt class="docutils literal"><span class="pre">make,</span> <span class="pre">make</span> <span class="pre">check,</span> <span class="pre">make</span> <span class="pre">install</span></tt></li>
+<li>the standard <tt class="docutils literal">make, make check, make install</tt></li>
 <li>or via cabal</li>
 </ul>
 </div>
@@ -380,7 +400,7 @@ the Haskell language specs</p>
 until the next newline as a comment, including valid SDL commands.
 Hence, SDL blocks containing line comments need to be separated by
 newlines in order to be parsed correctly.</li>
-<li>block comments begin with a <tt class="docutils literal"><span class="pre">{-</span></tt> token and end with a <tt class="docutils literal"><span class="pre">-}</span></tt>
+<li>block comments begin with a <tt class="docutils literal">{-</tt> token and end with a <tt class="docutils literal"><span class="pre">-}</span></tt>
 token. Everything within a comment block is ignored by the parser
 and block comments can be nested.</li>
 </ul>
@@ -425,7 +445,7 @@ terminate.</dd>
 </pre>
 <p>giving the name of each molecule and the number of molecules
 present initially. For example, the following molecule definition
-block defines molecules <tt class="docutils literal"><span class="pre">A</span></tt> and <tt class="docutils literal"><span class="pre">B</span></tt> with initial numbers of
+block defines molecules <tt class="docutils literal">A</tt> and <tt class="docutils literal">B</tt> with initial numbers of
 100 and 200, respectively</p>
 <pre class="literal-block">
 def molecules
@@ -441,16 +461,16 @@ the molecule block. Reactions are specified via</p>
 <pre class="literal-block">
 reactants -&gt; product { rate expression }
 </pre>
-<p>Here, <tt class="docutils literal"><span class="pre">reactants</span></tt> and <tt class="docutils literal"><span class="pre">products</span></tt> are of the form</p>
+<p>Here, <tt class="docutils literal">reactants</tt> and <tt class="docutils literal">products</tt> are of the form</p>
 <pre class="literal-block">
 &lt;Integer&gt; &lt;String&gt; + &lt;Integer&gt; &lt;String&gt; + .....
 </pre>
-<p>In this expression, <tt class="docutils literal"><span class="pre">&lt;String&gt;</span></tt> is the reactant or product name
-as defined in the molecule block and <tt class="docutils literal"><span class="pre">&lt;Integer&gt;</span></tt> an optional
-integer specifying the stoichiometry. If <tt class="docutils literal"><span class="pre">&lt;Integer&gt;</span></tt> is not
+<p>In this expression, <tt class="docutils literal">&lt;String&gt;</tt> is the reactant or product name
+as defined in the molecule block and <tt class="docutils literal">&lt;Integer&gt;</tt> an optional
+integer specifying the stoichiometry. If <tt class="docutils literal">&lt;Integer&gt;</tt> is not
 explicitly given, it is assumed to be 1.</p>
-<p>The reaction rate can either be a fixed value of type <tt class="docutils literal"><span class="pre">&lt;Double&gt;</span></tt>
-or else an mathematical expression involving <tt class="docutils literal"><span class="pre">&lt;Double&gt;</span></tt>,
+<p>The reaction rate can either be a fixed value of type <tt class="docutils literal">&lt;Double&gt;</tt>
+or else an mathematical expression involving <tt class="docutils literal">&lt;Double&gt;</tt>,
 molecule names, and the current simulation time. Hence, <strong>simgi</strong>
 rate expressions can be arbitrary complex functions of the
 instantaneous simulation time and the instantaneous numbers of any
@@ -461,18 +481,18 @@ functions), or the special variable TIME which refers to the
 current simulation time. Hence, do <strong>not</strong> use any of the
 mathematical keywords as a molecule name; this leads to undefined
 behavior.</p>
-<p>Here is an example reaction block for the two molecules <tt class="docutils literal"><span class="pre">A</span></tt> and
-<tt class="docutils literal"><span class="pre">B</span></tt> defined above:</p>
+<p>Here is an example reaction block for the two molecules <tt class="docutils literal">A</tt> and
+<tt class="docutils literal">B</tt> defined above:</p>
 <pre class="literal-block">
 define reactions
   2A + B -&gt; A  { 10.0e-5 }
   B      -&gt; A  { 2.0e-5 * A * exp(-0.5*TIME) }
 end
 </pre>
-<p>In the first reaction, 2 <tt class="docutils literal"><span class="pre">A</span></tt> molecules react with one <tt class="docutils literal"><span class="pre">B</span></tt> to
-yield another <tt class="docutils literal"><span class="pre">A</span></tt> at a rate of 10.0e-5 1/(Mol s). The second
-reaction describes a decay of <tt class="docutils literal"><span class="pre">B</span></tt> back to <tt class="docutils literal"><span class="pre">A</span></tt> at a rate
-that is computed based on the instantaneous number of <tt class="docutils literal"><span class="pre">A</span></tt>
+<p>In the first reaction, 2 <tt class="docutils literal">A</tt> molecules react with one <tt class="docutils literal">B</tt> to
+yield another <tt class="docutils literal">A</tt> at a rate of 10.0e-5 1/(Mol s). The second
+reaction describes a decay of <tt class="docutils literal">B</tt> back to <tt class="docutils literal">A</tt> at a rate
+that is computed based on the instantaneous number of <tt class="docutils literal">A</tt>
 molecules present and which decays exponentially with simulation
 time.</p>
 <p>Internally, rate expressions are converted into a compute stack
@@ -480,6 +500,32 @@ in RPN format which is evaluated at run-time. Even though this
 procedure is fairly efficient, there is some numerical overhead
 incurred at each iteration and the use of complicated rate
 expressions should therefore be avoided if possible.</p>
+</blockquote>
+<p><strong>event block</strong>: <em>&lt;block name&gt; = events</em></p>
+<blockquote>
+<p>An event block allows one to specify events which will occur during
+the simulation. Each event consists of a trigger and an associated
+set of actions. Events are specified with</p>
+<pre class="literal-block">
+{ trigger expression } =&gt; { action expression }
+</pre>
+<p>Here, <tt class="docutils literal">trigger expression</tt> is of the form</p>
+<pre class="literal-block">
+&lt;expression&gt; &lt;relational operator&gt; &lt;expression&gt;
+</pre>
+<p>where <tt class="docutils literal">&lt;expression&gt;</tt> can be any mathematical expression involving
+numbers and instantaneous molecule counts. <tt class="docutils literal">&lt;relational operator&gt;</tt>
+is any of <tt class="docutils literal">&gt;=</tt>, <tt class="docutils literal">&lt;=</tt>, <tt class="docutils literal">==</tt>, <tt class="docutils literal">&gt;</tt>, and <tt class="docutils literal">&lt;</tt>.</p>
+<p><tt class="docutils literal">&lt;action expression&gt;</tt> consists of a semi-colon separated list of
+assignments</p>
+<pre class="literal-block">
+&lt;String&gt; = &lt;expression&gt; [; &lt;String&gt; = &lt;expression&gt;]
+</pre>
+<p>where <tt class="docutils literal">&lt;String&gt;</tt> is a molecule name and <tt class="docutils literal">&lt;expression&gt;</tt> any
+mathematical expression involving numbers and instantaneous
+molecule counts.</p>
+<p>Once a trigger expression evaluates to true during a given timestep,
+the corresponding actions are carried out that same timestep.</p>
 </blockquote>
 </div>
 <div class="section" id="example-input-files">
@@ -526,7 +572,7 @@ expressions should therefore be avoided if possible.</p>
 <table class="docutils footnote" frame="void" id="id11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td>Rate expressions can contain any arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot; (exponentiation), and the mathematical functions <tt class="docutils literal"><span class="pre">sqrt,</span> <span class="pre">exp,</span> <span class="pre">log,</span> <span class="pre">log2,</span> <span class="pre">log10,</span> <span class="pre">sin,</span> <span class="pre">cos,</span> <span class="pre">tan,</span> <span class="pre">asin,</span> <span class="pre">acos,</span> <span class="pre">atan,</span> <span class="pre">sinh,</span> <span class="pre">cosh,</span> <span class="pre">tanh,</span> <span class="pre">asinh,</span> <span class="pre">acosh,</span> <span class="pre">atanh,</span> <span class="pre">acosh,</span> <span class="pre">atanh,</span> <span class="pre">erf,</span> <span class="pre">erfc,</span> <span class="pre">abs</span></tt>.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td>Rate expressions can contain any arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot; (exponentiation), and the mathematical functions <tt class="docutils literal">sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, erf, erfc, abs</tt>.</td></tr>
 </tbody>
 </table>
 </div>

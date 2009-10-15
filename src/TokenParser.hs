@@ -27,11 +27,13 @@ module TokenParser ( module Control.Applicative
                    , comma
                    , charLiteral
                    , float
+                   , identifier
                    , integer
                    , parens
                    , keywords
                    , lexer
                    , naturalOrFloat
+                   , operator
                    , operators
                    , reservedOp
                    , reserved
@@ -49,7 +51,6 @@ import Prelude
 import Text.ParserCombinators.Parsec hiding (many,optional, (<|>)) 
 import qualified Text.ParserCombinators.Parsec.Token as PT
 import Text.ParserCombinators.Parsec.Language (haskellDef
-                                              , opLetter
                                               , reservedOpNames
                                               , reservedNames )
 
@@ -105,11 +106,12 @@ builtinFunctions = [ ("sqrt",sqrt)
 keywords :: [String]
 keywords = [ "def", "molecules", "reactions", "time", "outputIter"
            , "nil", "outputFreq", "outputFile", "systemVol", "seed"
+           , "end", "variables", "time"
            ]
 
 operators :: [String]
 operators = ["+", "->", "::", "=", "{", "}", ">=", "==", "<="
-            , "<", ">"]
+            , "<", ">", "*", "/", "-"]
 
 
 
@@ -118,7 +120,6 @@ operators = ["+", "->", "::", "=", "{", "}", ">=", "==", "<="
 lexer :: PT.TokenParser st
 lexer  = PT.makeTokenParser 
          ( haskellDef { reservedOpNames = operators
-                      , opLetter      = oneOf "*+/^"
                       , reservedNames = keywords 
                             ++ map fst builtinFunctions
                       } )
@@ -146,7 +147,6 @@ integer = PT.integer lexer
 -- | token parser for Char
 stringLiteral :: CharParser st String
 stringLiteral = PT.stringLiteral lexer
-
 
 
 -- | token parser for Char
@@ -202,8 +202,18 @@ comma :: CharParser st String
 comma = PT.comma lexer
 
 
-
 -- | token parser for symbol
 symbol :: String -> CharParser st String
 symbol = PT.symbol lexer
+
+
+-- | token parser for symbol
+identifier :: CharParser st String
+identifier = PT.identifier lexer
+
+
+-- | token parser for symbol
+operator:: CharParser st String
+operator = PT.operator lexer
+
 

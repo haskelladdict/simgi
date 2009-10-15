@@ -188,16 +188,16 @@ execute_single_action :: EventAction -> MoleculeMap -> Double
                       -> MoleculeMap
 execute_single_action eventAction molMap t =
   let
-    name   = evtName eventAction
+    aName  = evtName eventAction
     action = evtAct eventAction
   in
     case action of
-      Constant c   -> adjust_mol_count name (to_int c) molMap
+      Constant c   -> adjust_mol_count aName (to_int c) molMap
 
       Function rpn -> let
                         newCount = to_int $ rpn_compute molMap t rpn
                       in
-                        adjust_mol_count name newCount molMap
+                        adjust_mol_count aName newCount molMap
   
       where
         -- NOTE: presently, converting double -> int is done

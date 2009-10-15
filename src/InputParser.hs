@@ -37,26 +37,62 @@ import GenericModel
 import RpnData
 import RpnParser
 
--- import Debug.Trace
+--import Debug.Trace
 
 
 -- | main parser entry point
 input_parser :: CharParser ModelState ModelState
 input_parser = whiteSpace 
-               *> many ( choice [ try parse_parameter_def
+{-               *> many ( choice [ try parse_parameter_def
                                 , try parse_molecule_def
                                 , try parse_reaction_def
                                 , try parse_event_def
-                                ])
+                                ])-}
+               *> parse_parameter_def
+               *> optional (try parse_variable_def)
+               *> parse_molecule_def
+               *> parse_reaction_def
+               *> optional parse_event_def
                *> eof
                >> getState
             <?> "main parser"
 
 
+
+-- | parser for variable definitions
+parse_variable_def :: CharParser ModelState ()
+parse_variable_def = join ( updateState <$> insert_variables <$>
+                            parse_def_block "variables" (many parse_variable) ) 
+                  <?> "variable definition block" 
+
+  where
+    insert_variables :: [ModelVariable] -> ModelState -> ModelState
+    insert_variables newVariables state = state { variables = newVariables }
+
+
+-- | parser for a single variable definition
+parse_variable :: CharParser ModelState ModelVariable
+parse_variable = ModelVariable <$> ((try parse_variable_name) )
+                 <*> (symbol "=" *> parse_variable_definition)
+              <?> "variable definition"
+
+
+-- | parser for variable name
+parse_variable_name :: CharParser ModelState String
+parse_variable_name = identifier 
+                   <?> "variable name"
+
+
+-- | parse the definition for a variable
+parse_variable_definition :: CharParser ModelState VariableValue
+parse_variable_definition =  parse_function_expression
+                         <?> "variable value"
+
+
 -- | parser for event definitions
 parse_event_def :: CharParser ModelState ()
 parse_event_def = join ( updateState <$> insert_events <$>
-  parse_def_block "events" (parse_events `sepBy` whiteSpace) )
+                         parse_def_block "events" (many parse_events) ) 
                <?> "event definitions" 
 
   where
@@ -67,8 +103,7 @@ parse_event_def = join ( updateState <$> insert_events <$>
 
 -- | parser for individual events
 parse_events :: CharParser ModelState Event
-parse_events = Event <$> (parse_trigger <* whiteSpace) 
-                <*> (reservedOp "=>" *> parse_actions)
+parse_events = Event <$> (parse_trigger) <*> (reservedOp "=>" *> parse_actions)
             <?> "reaction event"
 
 
@@ -118,15 +153,14 @@ parse_action_expressions =
 -- | parser for a single event action expression
 parse_single_action_expression :: CharParser ModelState EventAction
 parse_single_action_expression = EventAction <$> 
-  (molname <* whiteSpace) <*> (reservedOp "=" *> parse_expression)
+  (molname) <*> (reservedOp "=" *> parse_function_expression)
                               <?> "event action expression"
 
 
 
 -- | parser for simulation parameters
 parse_parameter_def :: CharParser ModelState ()
-parse_parameter_def = parse_def_block "parameters" 
-                        (parse_parameters `sepBy` whiteSpace)
+parse_parameter_def = parse_def_block "parameters" (many parse_parameters) 
                       *> pure ()
                    <?> "parameter definitions"
 
@@ -180,7 +214,7 @@ parse_outputFile = join (updateState <$> insert_filename
                           *> parse_filename ))
 
   where
-    insert_filename name state = state { outfileName = name }
+    insert_filename aName state = state { outfileName = aName }
 
 
 
@@ -216,7 +250,7 @@ parse_outputFreq = join (updateState <$> insert_outputFreq
 -- | parser for molecule definitions
 parse_molecule_def :: CharParser ModelState ()
 parse_molecule_def = join ( updateState <$> insert_molecules <$> 
-  parse_def_block "molecules" (parse_molecules `sepBy` whiteSpace) )
+                            parse_def_block "molecules" (many parse_molecules)) 
                   <?> "molecule definitions"
 
   where
@@ -238,24 +272,14 @@ parse_molecules = make_molecule <$> (try molname) <*> integer
 -- A molecule name can consist of letters and numbers but has to 
 -- start with a letter. The following keywords are reserved
 molname :: CharParser ModelState String
-molname = not_end ((:) <$> letter <*> many (alphaNum <?> ""))
-        <?> "molecule name" 
-
-
-
--- | short checker making sure we don't scan beyond the "end" statement
--- of a block 
-not_end :: CharParser ModelState String -> CharParser ModelState String
-not_end p = p >>= \name -> case name /= "end" of
-                             True  -> pure name
-                             False -> pzero
-
+molname = identifier
+       <?> "molecule name" 
 
 
 -- | parser for reaction definitions
 parse_reaction_def :: CharParser ModelState ()
 parse_reaction_def = join ( updateState <$> insert_reactions <$>
-  parse_def_block "reactions" (parse_reaction `sepBy` whiteSpace) )
+                            parse_def_block "reactions" (many parse_reaction) ) 
                   <?> "reaction definitions"
   
   where
@@ -349,8 +373,8 @@ parse_reaction = setup_reaction
 -- If n_i is missing we assume it is 1.0
 parse_react_prod :: CharParser ModelState (M.Map String Int)
 parse_react_prod = (reserved "nil" *> pure (M.empty))
-                <|> (M.fromList <$> ((make_tuple <$> option 1 integer 
-                    <*> (try molname <* whiteSpace)) 
+                <|> (M.fromList <$> 
+                        ((make_tuple <$> option 1 integer <*> try molname) 
                          `sepBy` reservedOp "+") )
                 <?> "reactant or product list"
   
@@ -408,19 +432,6 @@ parse_rate :: CharParser ModelState MathExpr
 parse_rate = (try (braces parse_constant_expression))
           <|> braces parse_function_expression 
           <?> "constant or function expression"
-
-
-
--- | parse either a constant float or a complex function 
--- expression evaluation to a float at runtime
--- NOTE: It is important that we parse for a function
--- expression with try and not the constant expression
--- otherwise we get incomplete matches for things like 
--- 10*x+y.
-parse_expression :: CharParser ModelState MathExpr
-parse_expression = (try parse_function_expression)
-                <|> parse_constant_expression
-                <?> "constant or function expression"
 
 
 

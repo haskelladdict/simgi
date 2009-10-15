@@ -37,7 +37,7 @@ import TokenParser
 -- | parses a mathematical infix expression and converts
 -- into a stack in rpn
 parse_infix_to_rpn :: CharParser ModelState RpnStack 
-parse_infix_to_rpn = RpnStack <$> add_term 
+parse_infix_to_rpn = RpnStack <$> add_term
                   <?> "infix math expression"
 
 
@@ -92,7 +92,7 @@ mul_term = concat . insert_muls <$>
 
 -- | parser for potentiation operations "^"
 exp_term :: CharParser ModelState [RpnItem]
-exp_term = concat . insert_exps <$> (whiteSpace *> factor) `sepBy` (reservedOp "^")
+exp_term = concat . insert_exps <$> factor `sepBy` (reservedOp "^")
         <?> "exponent"
 
   where
@@ -149,7 +149,7 @@ signed_parenthesis = push_parens <$> parse_sign <*> parens add_term
 -- NOTE: Due to the notFollowedBy this parser can not be used
 -- with 'many' and other parser combinators.
 parse_single_number :: CharParser ModelState [RpnItem]
-parse_single_number = push <$> (parse_number <* notFollowedBy alphaNum)
+parse_single_number = push <$> (parse_number) 
                    <?> "signed integer or double"
   where
     push x = [Number x]
@@ -159,7 +159,7 @@ parse_single_number = push <$> (parse_number <* notFollowedBy alphaNum)
 -- | parse a number, can be used with 'many' and other parser
 -- combinators; integers are automatically promoted to double
 parse_number :: CharParser ModelState Double
-parse_number = converter <$> parse_sign <*> naturalOrFloat 
+parse_number = converter <$> parse_sign <*> naturalOrFloat -- >>= \x -> trace (show x) (return x)
             <?> "signed integer or double"
   where 
     converter sign val = case val of
@@ -170,16 +170,14 @@ parse_number = converter <$> parse_sign <*> naturalOrFloat
 
 -- | parse the sign of a numerical expression
 parse_sign :: CharParser ModelState Double
-parse_sign = option 1.0 ( whiteSpace *> char '-' *> pure (-1.0) )
+parse_sign = option 1.0 ( char '-' *> pure (-1.0) )
           <?> "sign"
 
 
 
 -- | this is how valid variable names have to look like
 parse_variable :: CharParser ModelState [RpnItem]
-parse_variable = 
-  push <$> parse_sign 
-  <*> ((:) <$> letter <*> many (alphaNum <?> "") <* whiteSpace)
+parse_variable = push <$> parse_sign <*> identifier 
               <?> "variable"
   where
     -- in case of a unary minus we also push the necessary

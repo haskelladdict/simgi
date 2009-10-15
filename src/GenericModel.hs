@@ -27,11 +27,13 @@ module GenericModel ( defaultRateList
                     , initialModelState
                     , MathExpr(..)
                     , ModelState(..)
+                    , ModelVariable(..)
                     , MoleculeMap
                     , Output(..)
                     , Rate
                     , RateList
                     , Reaction(..)
+                    , VariableValue
                     ) where
 
 
@@ -56,7 +58,6 @@ import RpnData
 type MoleculeMap = M.Map String Int
 
 
-
 -- | generic data type for a mathematical expression. This could
 -- either be a constant or an expression inside an RpnStack
 data MathExpr = Constant Double | Function RpnStack
@@ -71,6 +72,18 @@ instance Eq MathExpr where
   (Function f1) == (Function f2) =   f1 == f2
   _             == _             =   False
 
+
+-- | data type for variable values which are of type MathExpr
+-- i.e. they can either be a number or a function involving, e.g.,
+-- TIME or molecule counts
+type VariableValue = MathExpr
+
+
+-- | data type for variable definitions which consist of a name
+-- and a value for the variable
+data ModelVariable = ModelVariable { name       :: String
+                                   , definition :: VariableValue
+                                   }
 
 
 -- | data type for reaction rates which are of type MathExpr
@@ -96,7 +109,7 @@ type Actor = (String, Double -> Double)
 -- | for each elementary reaction i we need to keep track of
 --   
 --   rate  : the reaction rate c_i or rate function 
---   actors: a list of Actor
+--   actors: a list of Actors
 --   react : a list of tuples (i,j) describing that the reaction
 --           changes the count of molecule i by j 
 --
@@ -209,6 +222,7 @@ data ModelState = ModelState { molCount    :: MoleculeMap
                              , outputFreq  :: Integer
                              , outputList  :: [Output]
                              , outfileName :: String
+                             , variables   :: [ModelVariable]
                              }
 
 type GillespieState a = State ModelState a
@@ -242,6 +256,7 @@ initialModelState = ModelState { molCount    = M.empty
                                , outputFreq  = 1000
                                , outputList  = []
                                , outfileName = ""
+                               , variables   = []
                                }
 
 

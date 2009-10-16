@@ -222,14 +222,14 @@ event_action_test_driver mol t (x:xs) =
         -- make sure the trigger expression evaluated properly
         let
           actions    = evtActions event
-          outMols    = execute_actions actions mol t 
+          outMols    = execute_actions actions (SymbolTable mol M.empty) t 
           outTrigger = check_trigger mol t expectedTrigger event 
         in
-          case outTrigger && (outMols == expectedMols) of
+          case outTrigger && ((molSymbols outMols) == expectedMols) of
 
             False -> tell [TestResult False expr 
               (show expectedTrigger ++ " => " ++ show expectedMols)
-              (show outTrigger ++ " => " ++ show outMols)]
+              (show outTrigger ++ " => " ++ show (molSymbols outMols))]
 
             True  -> tell [TestResult True expr "" ("good parse")]
                        >> event_action_test_driver mol t xs
@@ -244,5 +244,5 @@ check_trigger molMap t expected (Event { evtTrigger = trigger }) =
   computed == expected
   
   where
-    computed = compute_trigger molMap t trigger
+    computed = compute_trigger (SymbolTable molMap M.empty) t trigger
 

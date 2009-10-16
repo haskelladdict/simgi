@@ -66,15 +66,18 @@ parse_variable_def = join ( updateState <$> insert_variables <$>
                   <?> "variable definition block" 
 
   where
-    insert_variables :: [ModelVariable] -> ModelState -> ModelState
-    insert_variables newVariables state = state { variables = newVariables }
+    insert_variables :: [(String, Double)] -> ModelState -> ModelState
+    insert_variables theVars state = state { variables = M.fromList theVars }
 
 
 -- | parser for a single variable definition
-parse_variable :: CharParser ModelState ModelVariable
-parse_variable = ModelVariable <$> ((try parse_variable_name) )
+parse_variable :: CharParser ModelState (String, Double)
+parse_variable = tuple_it <$> ((try parse_variable_name) )
                  <*> (symbol "=" *> parse_variable_definition)
               <?> "variable definition"
+  
+  where
+    tuple_it a b = (a,b)
 
 
 -- | parser for variable name
@@ -84,8 +87,8 @@ parse_variable_name = identifier
 
 
 -- | parse the definition for a variable
-parse_variable_definition :: CharParser ModelState VariableValue
-parse_variable_definition =  parse_function_expression
+parse_variable_definition :: CharParser ModelState Double
+parse_variable_definition =  parse_number
                          <?> "variable value"
 
 

@@ -42,13 +42,13 @@ check_input (ModelState { molCount    = theMols
                         , maxIter     = iterCount
                         , outputFreq  = outFreq
                         , outfileName = fileName
+                        , variables   = theVars
                         }) 
-  = check_molecules (defined_mols theMols) 
-      (react_mols theReactions)
+  = check_molecules (M.keys theMols) (react_mols theReactions)
     >> check_positive_outfreq outFreq
     >> check_positive_itercount iterCount
     >> check_filename fileName
-    >> check_reaction_rate_functions (defined_mols theMols) 
+    >> check_reaction_rate_functions defined_names 
          (rate_mols theReactions)
 
  where
@@ -56,8 +56,8 @@ check_input (ModelState { molCount    = theMols
   react_mols = L.nub . L.concat . map (map (fst) . reaction) 
 
 
-  -- | extract all definied molecules
-  defined_mols = M.keys 
+  -- | extract all definied names (molecules, variables, ...)
+  defined_names = (M.keys theVars) ++ (M.keys theVars)
 
 
   -- | extract all molecules appearing in reaction rate

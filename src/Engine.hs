@@ -43,7 +43,7 @@ import ExtraFunctions
 import GenericModel
 import RpnCalc
 
--- import Debug.Trace
+import Debug.Trace
 
 
 -- | main simulation driver
@@ -93,6 +93,7 @@ run_gillespie = get
                            , maxIter     = it_max
                            , outputFreq  = freq
                            , outputList  = output
+                           , variables   = theVars
                            }) ->
 
 
@@ -101,20 +102,24 @@ run_gillespie = get
       -- generate two random numbers
       (r1,rGen1) = randomR (0.0 :: Double, 1.0) rGen
       (r2,rGen2) = randomR (0.0 :: Double, 1.0) rGen1
-      out_rates  = compute_rates in_reacts in_mols t []
+
+      symbols    = SymbolTable in_mols theVars
+      out_rates  = compute_rates symbols in_reacts t []
       a_0        = sum out_rates
       tau        = (-1.0/a_0) * log(r1)
       t_new      = t+tau
       mu         = get_mu (a_0*r2) out_rates
-      out_mols   = adjust_molcount in_mols in_reacts mu
-      evt_mols   = handle_events molEvents out_mols t_new
+      out_mols   = update_molcount in_mols in_reacts mu
+      evt_syms   = handle_events molEvents 
+                   (symbols { molSymbols = out_mols }) t_new
       new_output = generate_output freq it t_new out_mols output
-      newState   = inState { molCount    = evt_mols
+      newState   = inState { molCount    = (molSymbols evt_syms)
                            , rates       = out_rates
                            , randGen     = rGen2
                            , currentTime = t_new
                            , currentIter = it+1
                            , outputList  = new_output
+                           , variables   = (varSymbols evt_syms)
                            }
     in
 
@@ -134,70 +139,70 @@ run_gillespie = get
 
 -- | handle all user defined events and return the adjusted
 -- number of molecules
--- WARNING: We should probably the Event Stack before we use
+-- WARNING: We should probably check the Event Stack before we use
 -- it to compute stuff; at least make sure molecule exist
-handle_events :: [Event] -> MoleculeMap -> Double -> MoleculeMap
-handle_events [] molMap     _ = molMap
-handle_events (x:xs) molMap t = 
+handle_events :: [Event] -> SymbolTable -> Double -> SymbolTable
+handle_events [] symbols     _ = symbols
+handle_events (x:xs) symbols t = 
   let
-    newMolMap = handle_single_event x molMap t
+    newSymbols = handle_single_event x symbols t
   in
-    handle_events xs newMolMap t
+    handle_events xs newSymbols t
 
 
 
 -- | handle a single user event
-handle_single_event :: Event -> MoleculeMap -> Double -> MoleculeMap
-handle_single_event evt molMap t =
+handle_single_event :: Event -> SymbolTable -> Double -> SymbolTable
+handle_single_event evt symbols t =
   let
     trigger      = evtTrigger evt
     actions      = evtActions evt
-    triggerVal   = compute_trigger molMap t trigger
+    triggerVal   = compute_trigger symbols t trigger
   in 
     if triggerVal
-      then execute_actions actions molMap t 
-      else molMap
+      then execute_actions actions symbols t 
+      else symbols
 
 
 
 -- | compute the value of a trigger
-compute_trigger :: MoleculeMap -> Double -> EventTrigger -> Bool
-compute_trigger molMap t trigger = leftTrigger `triggerOp` rightTrigger
+compute_trigger :: SymbolTable -> Double -> EventTrigger -> Bool
+compute_trigger symbols t trigger = leftTrigger `triggerOp` rightTrigger
 
   where
-    leftTrigger  = rpn_compute molMap t (trigLeftExpr trigger)
-    rightTrigger = rpn_compute molMap t (trigRightExpr trigger)
+    leftTrigger  = rpn_compute symbols t (trigLeftExpr trigger)
+    rightTrigger = rpn_compute symbols t (trigRightExpr trigger)
     triggerOp    = trigRelation trigger
 
 
 
 -- | handle all actions associated with a user event
-execute_actions :: [EventAction] -> MoleculeMap -> Double 
-                -> MoleculeMap
-execute_actions [] molMap _     = molMap
-execute_actions (x:xs) molMap t =
+execute_actions :: [EventAction] -> SymbolTable -> Double 
+                -> SymbolTable
+execute_actions [] symbols _     = symbols
+execute_actions (x:xs) symbols t =
   let
-    newMolMap = execute_single_action x molMap t
+    newSymbol = execute_single_action x symbols t
   in
-    execute_actions xs newMolMap t
+    execute_actions xs newSymbol t
 
 
 
 -- | handle a single event triggered action
-execute_single_action :: EventAction -> MoleculeMap -> Double
-                      -> MoleculeMap
-execute_single_action eventAction molMap t =
+execute_single_action :: EventAction -> SymbolTable -> Double
+                      -> SymbolTable
+execute_single_action eventAction symbols t =
   let
     aName  = evtName eventAction
     action = evtAct eventAction
   in
     case action of
-      Constant c   -> adjust_mol_count aName (to_int c) molMap
+      Constant c   -> adjust_count aName c 
 
       Function rpn -> let
-                        newCount = to_int $ rpn_compute molMap t rpn
+                        newCount = rpn_compute symbols t rpn
                       in
-                        adjust_mol_count aName newCount molMap
+                        adjust_count aName newCount 
   
       where
         -- NOTE: presently, converting double -> int is done
@@ -206,11 +211,14 @@ execute_single_action eventAction molMap t =
         to_int :: Double -> Int
         to_int = floor 
 
+        -- adjust either a molecule count of the value of a
+        -- variable
+        adjust_count key val = case M.member key (molSymbols symbols) of
 
-
--- | adjust the count of a certain molecule to a new value
-adjust_mol_count :: String -> Int -> MoleculeMap -> MoleculeMap
-adjust_mol_count key val molMap = M.insert key val molMap
+          True  -> symbols { molSymbols = 
+                             M.insert key (to_int val) (molSymbols symbols) }
+          False -> symbols { varSymbols = 
+                             M.insert key val (varSymbols symbols) }
 
 
 
@@ -232,20 +240,22 @@ generate_output afreq it t amol outlist
 
 -- | depending on which reaction happened adjust the number of 
 -- molecules in the system
-adjust_molcount :: MoleculeMap -> [Reaction] -> Int -> MoleculeMap
-adjust_molcount theMap rs mID =
+update_molcount :: MoleculeMap -> [Reaction] -> Int -> MoleculeMap
+update_molcount theMap rs mID =
 
-  let (Reaction { reaction = react_in }) = rs !! mID
+  let 
+    (Reaction { reaction = react_in }) = rs !! mID
   in
     adjustMap react_in theMap 
 
   where
     adjustMap :: [(String,Int)] -> MoleculeMap -> MoleculeMap
     adjustMap [] m = m
-    adjustMap ((k,a):rands) m = let val   = (M.!) m k
+    adjustMap ((k,a):changes) m = let 
+                                    val   = (M.!) m k
                                     m_new = M.insert k (a+val) m
-                                in
-                                  adjustMap rands m_new
+                                  in
+                                    adjustMap changes m_new
 
 
 
@@ -258,22 +268,23 @@ get_mu val = length . takeWhile ( <val ) . scanl1 (+)
 
 -- | compute the current value for the reaction probabilities based 
 -- on the number of molecules and reaction rates
-compute_rates :: [Reaction] -> MoleculeMap -> Double 
+compute_rates :: SymbolTable -> [Reaction] -> Double 
               -> RateList -> RateList
-compute_rates [] _ _ rts = reverse rts
-compute_rates ((Reaction {rate = c_in, actors = a_in }):rs) 
-  theMap theTime rts = 
+compute_rates _ [] _ rts = reverse rts
+compute_rates symbols ((Reaction {rate = c_in, actors = a_in }):rs) 
+  theTime rts = 
   
   case c_in of
-    (Constant aRate)    -> compute_rates rs theMap theTime
+    (Constant aRate)    -> compute_rates symbols rs theTime
        ((a_new aRate): rts)
-    (Function rateFunc) -> compute_rates rs theMap theTime
-       ((a_new . (rpn_compute theMap theTime) $ rateFunc):rts)
+    (Function rateFunc) -> compute_rates symbols rs theTime
+       ((a_new . (rpn_compute symbols theTime) $ rateFunc):rts)
  
   where
     mult  = product $ map (\(a,f) -> f . fromIntegral $ 
-            (M.!) theMap a) a_in 
+            (M.!) (molSymbols symbols) a) a_in 
     a_new = (*) mult 
+    
 
 
 
@@ -313,6 +324,7 @@ write_info (Output {iteration = it, time = t}) =
 write_data :: Handle -> [Output] -> IO ()
 write_data _ [] = return ()
 write_data handle ((Output {iteration = it, time = t, mols = m}):xs) = 
+
   let 
     header = (printf "%-10d %18.15g" it t) :: String
     counts = create_count_string m

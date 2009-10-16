@@ -27,12 +27,13 @@ module GenericModel ( defaultRateList
                     , initialModelState
                     , MathExpr(..)
                     , ModelState(..)
-                    , ModelVariable(..)
                     , MoleculeMap
                     , Output(..)
                     , Rate
                     , RateList
                     , Reaction(..)
+                    , SymbolTable(..)
+                    , VariableMap
                     , VariableValue
                     ) where
 
@@ -58,6 +59,20 @@ import RpnData
 type MoleculeMap = M.Map String Int
 
 
+-- | A VariableMap holds all definied variables and their 
+-- current value.
+-- NOTE: variables may change their each iteration since
+-- they may be time dependent.
+type VariableMap = M.Map String Double
+
+
+-- | SymbolTable holds all names we know about such as molecule
+-- names, variable names ...
+data SymbolTable = SymbolTable { molSymbols :: MoleculeMap
+                               , varSymbols :: VariableMap
+                               }
+
+
 -- | generic data type for a mathematical expression. This could
 -- either be a constant or an expression inside an RpnStack
 data MathExpr = Constant Double | Function RpnStack
@@ -76,14 +91,7 @@ instance Eq MathExpr where
 -- | data type for variable values which are of type MathExpr
 -- i.e. they can either be a number or a function involving, e.g.,
 -- TIME or molecule counts
-type VariableValue = MathExpr
-
-
--- | data type for variable definitions which consist of a name
--- and a value for the variable
-data ModelVariable = ModelVariable { name       :: String
-                                   , definition :: VariableValue
-                                   }
+type VariableValue = Double
 
 
 -- | data type for reaction rates which are of type MathExpr
@@ -222,7 +230,7 @@ data ModelState = ModelState { molCount    :: MoleculeMap
                              , outputFreq  :: Integer
                              , outputList  :: [Output]
                              , outfileName :: String
-                             , variables   :: [ModelVariable]
+                             , variables   :: VariableMap
                              }
 
 type GillespieState a = State ModelState a
@@ -256,7 +264,7 @@ initialModelState = ModelState { molCount    = M.empty
                                , outputFreq  = 1000
                                , outputList  = []
                                , outfileName = ""
-                               , variables   = []
+                               , variables   = M.empty
                                }
 
 

@@ -169,7 +169,7 @@ test_driver molMap t (x:xs) =
       Right stack ->
 
         -- evalute RPN stack
-        let result = rpn_compute molMap t stack in
+        let result = rpn_compute (SymbolTable molMap M.empty) t stack in
           examine_result expected result expr 
           >> test_driver molMap t xs
 

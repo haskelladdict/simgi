@@ -215,22 +215,23 @@ data Event = Event { evtTrigger :: EventTrigger
 
 
 -- | Our model state
-data ModelState = ModelState { molCount    :: MoleculeMap
-                             , rates       :: RateList
-                             , reactions   :: [Reaction]
-                             , randNums    :: [Double]
-                             , seed        :: Word64
-                             , randGen     :: MT.PureMT
-                             , events      :: [Event]
-                             , systemVol   :: Double
-                             , currentTime :: Double
-                             , currentIter :: Integer
-                             , maxTime     :: Double
-                             , maxIter     :: Integer
-                             , outputFreq  :: Integer
-                             , outputList  :: [Output]
-                             , outfileName :: String
-                             , variables   :: VariableMap
+data ModelState = ModelState { molCount      :: MoleculeMap
+                             , rates         :: RateList
+                             , reactions     :: [Reaction]
+                             , randNums      :: [Double]
+                             , seed          :: Word64
+                             , randGen       :: MT.PureMT
+                             , events        :: [Event]
+                             , systemVol     :: Double
+                             , currentTime   :: Double
+                             , currentIter   :: Integer
+                             , maxTime       :: Double
+                             , maxIter       :: Integer
+                             , outputFreq    :: Integer
+                             , outputRequest :: [String]
+                             , outputList   :: [Output]
+                             , outfileName   :: String
+                             , variables     :: VariableMap
                              }
 
 type GillespieState a = State ModelState a
@@ -238,9 +239,10 @@ type GillespieState a = State ModelState a
 
 
 -- | data structure for keeping track of our output
-data Output = Output { iteration :: Integer
-                     , time      :: Double
-                     , mols      :: MoleculeMap 
+data Output = Output { iteration  :: Integer
+                     , time       :: Double
+                     , mols       :: MoleculeMap
+--                     , outputData :: [Double]
                      }
   deriving(Show)
 
@@ -262,6 +264,7 @@ initialModelState = ModelState { molCount    = M.empty
                                , maxTime     = 0.0
                                , maxIter     = 10000
                                , outputFreq  = 1000
+                               , outputRequest = []
                                , outputList  = []
                                , outfileName = ""
                                , variables   = M.empty

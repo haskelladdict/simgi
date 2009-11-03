@@ -37,7 +37,7 @@ import GenericModel
 import RpnData
 import RpnParser
 
---import Debug.Trace
+-- import Debug.Trace
 
 
 -- | main parser entry point
@@ -52,7 +52,8 @@ input_parser = whiteSpace
                *> optional (try parse_variable_def)
                *> parse_molecule_def
                *> parse_reaction_def
-               *> optional parse_event_def
+               *> optional (try parse_event_def)
+               *> optional parse_output_def 
                *> eof
                >> getState
             <?> "main parser"
@@ -91,6 +92,23 @@ parse_variable_definition :: CharParser ModelState MathExpr
 parse_variable_definition =  (try parse_constant_expression)
                              <|> (braces parse_function_expression)
                          <?> "variable value"
+
+
+-- | parser for output definitions
+parse_output_def :: CharParser ModelState ()
+parse_output_def = join ( updateState <$> insert_output_request <$>
+                         parse_def_block "output" (parse_output_list) ) 
+               <?> "event definitions" 
+
+  where
+    insert_output_request :: [String] -> ModelState -> ModelState
+    insert_output_request outDataList state = state { outputRequest = outDataList }
+
+
+-- | parse the list with variables or molecules to be punched to the 
+-- output file
+parse_output_list :: CharParser ModelState [String]
+parse_output_list = brackets (commaSep parse_variable_name)
 
 
 -- | parser for event definitions

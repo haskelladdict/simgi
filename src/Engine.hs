@@ -182,7 +182,7 @@ execute_actions :: [EventAction] -> SymbolTable -> Double
 execute_actions [] symbols _     = symbols
 execute_actions (x:xs) symbols t =
   let
-    newSymbol = trace ("are here") execute_single_action x symbols t
+    newSymbol = execute_single_action x symbols t
   in
     execute_actions xs newSymbol t
 
@@ -228,7 +228,7 @@ generate_output :: Integer -> Integer -> Double -> MoleculeMap
                 -> [Output] -> [Output]
 generate_output afreq it t amol outlist  
   | mod it afreq /= 0  = outlist
-  | otherwise        = new_out:outlist
+  | otherwise          = new_out:outlist
 
     where
       new_out = Output { iteration = it

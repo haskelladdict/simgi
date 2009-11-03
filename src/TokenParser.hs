@@ -22,9 +22,11 @@
 module TokenParser ( module Control.Applicative
                    , module Text.ParserCombinators.Parsec
                    , braces
+                   , brackets
                    , builtinFunctions
                    , colon
                    , comma
+                   , commaSep
                    , charLiteral
                    , float
                    , identifier
@@ -137,11 +139,14 @@ braces :: CharParser st a -> CharParser st a
 braces = PT.braces lexer
 
 
+-- | token parser for brackets 
+brackets :: CharParser st a -> CharParser st a
+brackets = PT.brackets lexer
+
 
 -- | token parser for Integer
 integer :: CharParser st Integer
 integer = PT.integer lexer
-
 
 
 -- | token parser for Char
@@ -154,17 +159,14 @@ charLiteral :: CharParser st Char
 charLiteral = PT.charLiteral lexer
 
 
-
 -- | token parser for Double
 float :: CharParser st Double
 float = PT.float lexer
 
 
-
 -- | token parser for Either Integer Double
 naturalOrFloat :: CharParser st (Either Integer Double)
 naturalOrFloat = PT.naturalOrFloat lexer
-
 
 
 -- | token parser for keywords
@@ -200,6 +202,11 @@ semi = PT.semi lexer
 -- | token parser for comma
 comma :: CharParser st String
 comma = PT.comma lexer
+
+
+-- | token parser for comma separated list of items
+commaSep :: CharParser st a -> CharParser st [a]
+commaSep = PT.commaSep lexer
 
 
 -- | token parser for symbol

@@ -25,4 +25,8 @@ def reactions
   x      -> 2x + z    { 104.0 }
   2x     -> nil       { 0.016 }
   z      -> y         { 26.0  }
-end 
+end
+
+def output
+  [x,y,z]
+end

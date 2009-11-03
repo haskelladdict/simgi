@@ -23,4 +23,8 @@ def reactions
   x      -> y         { 50.0    }
   2x + y -> 3x        { 0.00005 }
   x      -> nil       { 5.0     }
-end 
+end
+
+def output
+  [x,y]
+end

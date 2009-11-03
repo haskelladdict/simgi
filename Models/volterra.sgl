@@ -24,3 +24,6 @@ def reactions
   y      -> nil      { 10.0 }
 end 
 
+def output
+  [x,y]
+end

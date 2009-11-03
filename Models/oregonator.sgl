@@ -14,9 +14,9 @@ def parameters
 end
 
 def molecules
-  x 500
-  y 1000
-  z 2000  
+  x = 500
+  y = 1000
+  z = 2000  
 end
 
 def reactions

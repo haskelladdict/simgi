@@ -75,7 +75,7 @@ update_state dataDumpIter
              state@(ModelState { currentTime = t 
                                , maxIter     = it
                                }) 
-  = (t, state { maxIter = it + dataDumpIter, outputList = [] })
+  = (t, state { maxIter = it + dataDumpIter, outputCache = [] })
 
 
 
@@ -83,17 +83,18 @@ update_state dataDumpIter
 run_gillespie :: GillespieState [Output]
 run_gillespie = get
 
-  >>= \inState@(ModelState { molCount    = in_mols
-                           , reactions   = in_reacts
-                           , randGen     = rGen
-                           , events      = molEvents
-                           , currentTime = t
-                           , currentIter = it
-                           , maxTime     = t_max
-                           , maxIter     = it_max
-                           , outputFreq  = freq
-                           , outputList  = output
-                           , variables   = theVars
+  >>= \inState@(ModelState { molCount      = in_mols
+                           , reactions     = in_reacts
+                           , randGen       = rGen
+                           , events        = molEvents
+                           , currentTime   = t
+                           , currentIter   = it
+                           , maxTime       = t_max
+                           , maxIter       = it_max
+                           , outputFreq    = freq
+                           , outputRequest = outputVars
+                           , outputCache   = output
+                           , variables     = theVars
                            }) ->
 
 
@@ -103,6 +104,7 @@ run_gillespie = get
       (r1,rGen1) = randomR (0.0 :: Double, 1.0) rGen
       (r2,rGen2) = randomR (0.0 :: Double, 1.0) rGen1
 
+      -- update state
       symbols    = SymbolTable in_mols theVars
       out_rates  = compute_rates symbols in_reacts t []
       a_0        = sum out_rates
@@ -110,15 +112,15 @@ run_gillespie = get
       t_new      = t+tau
       mu         = get_mu (a_0*r2) out_rates
       out_mols   = update_molcount in_mols in_reacts mu
-      evt_syms   = handle_events molEvents 
-                   (symbols { molSymbols = out_mols }) t_new
-      new_output = generate_output freq it t_new out_mols output
+      newSymbols = (symbols { molSymbols = out_mols })
+      evt_syms   = handle_events molEvents newSymbols t_new
+      new_output = generate_output freq it t_new newSymbols outputVars output
       newState   = inState { molCount    = (molSymbols evt_syms)
                            , rates       = out_rates
                            , randGen     = rGen2
                            , currentTime = t_new
                            , currentIter = it+1
-                           , outputList  = new_output
+                           , outputCache  = new_output
                            , variables   = (varSymbols evt_syms)
                            }
     in
@@ -224,19 +226,28 @@ execute_single_action eventAction symbols t =
 
 -- | generate a new Output data structure based on the current
 -- molecule counts
-generate_output :: Integer -> Integer -> Double -> MoleculeMap 
-                -> [Output] -> [Output]
-generate_output afreq it t amol outlist  
+generate_output :: Integer -> Integer -> Double -> SymbolTable
+                -> [String] -> [Output] -> [Output]
+generate_output afreq it t symTable outVars outlist  
   | mod it afreq /= 0  = outlist
   | otherwise          = new_out:outlist
 
     where
-      new_out = Output { iteration = it
-                       , time      = t
-                       , mols      = amol
+      currentOutputList = grab_output_data outVars t symTable
+
+      new_out = Output { iteration  = it
+                       , time       = t
+                       , outputData = currentOutputList
                        }
 
 
+-- | given a list of variable or molecule names, goes through the
+-- symbol table, grabs the current values associated with the variables,
+-- and returns them as a list
+grab_output_data :: [String] -> Double -> SymbolTable -> [Double]
+grab_output_data vars time symbols = 
+  foldr (\x acc -> (get_val_from_symbolTable x time symbols):acc) [] vars
+                                
 
 -- | depending on which reaction happened adjust the number of 
 -- molecules in the system
@@ -290,13 +301,20 @@ compute_rates symbols ((Reaction {rate = c_in, actors = a_in }):rs)
 
 -- | initialize the output data structure
 create_initial_output :: ModelState -> Output
-create_initial_output (ModelState { molCount = initialMols }) = 
+create_initial_output (ModelState { molCount      = initialMols 
+                                  , variables     = initialVars
+                                  , outputRequest = outVars
+                                  }) =
   
   Output { iteration = 1
          , time      = 0.0
-         , mols      = initialMols
+         , outputData = initialOutput
          }
 
+
+  where
+    symbols = SymbolTable initialMols initialVars
+    initialOutput = grab_output_data outVars 0.0 symbols
 
 
 -- | set up the initial state
@@ -307,7 +325,7 @@ create_initial_state state@(ModelState { seed = theSeed}) out =
         , randGen     = MT.pureMT theSeed
         , currentTime = 0.0
         , currentIter = 1
-        , outputList  = [out]
+        , outputCache = [out]
         }
 
 
@@ -323,16 +341,15 @@ write_info (Output {iteration = it, time = t}) =
 -- file handle corresponding to the output file
 write_data :: Handle -> [Output] -> IO ()
 write_data _ [] = return ()
-write_data handle ((Output {iteration = it, time = t, mols = m}):xs) = 
+write_data handle ((Output {iteration = it, time = t, outputData = out}):xs) = 
 
   let 
-    header = (printf "%-10d %18.15g" it t) :: String
-    counts = create_count_string m
+    header = (printf "%-10d %18.15g  " it t) :: String
+    counts = create_count_string out
   in
     hPutStrLn handle (header ++ counts)
     >> write_data handle xs
 
   where
-    create_count_string :: MoleculeMap -> String
-    create_count_string = foldr (\x a -> (printf "%10d " x) ++ a) 
-                          "" . M.elems 
+    create_count_string :: [Double] -> String
+    create_count_string = foldr (\x a -> (printf "%18.15f  " x) ++ a) ""

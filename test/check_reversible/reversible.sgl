@@ -22,4 +22,8 @@ end
 def reactions
   a + b -> c  { 1e6*10 }
   c -> a + b  { 1e5 }
-end 
+end
+
+def output
+  [a, b, c]
+end

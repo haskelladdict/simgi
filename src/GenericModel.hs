@@ -229,7 +229,7 @@ data ModelState = ModelState { molCount      :: MoleculeMap
                              , maxIter       :: Integer
                              , outputFreq    :: Integer
                              , outputRequest :: [String]
-                             , outputList   :: [Output]
+                             , outputCache   :: [Output]
                              , outfileName   :: String
                              , variables     :: VariableMap
                              }
@@ -241,8 +241,7 @@ type GillespieState a = State ModelState a
 -- | data structure for keeping track of our output
 data Output = Output { iteration  :: Integer
                      , time       :: Double
-                     , mols       :: MoleculeMap
---                     , outputData :: [Double]
+                     , outputData :: [Double]
                      }
   deriving(Show)
 
@@ -251,23 +250,23 @@ data Output = Output { iteration  :: Integer
 -- | initial model state to be partially filled by the 
 -- parser from the input deck
 initialModelState :: ModelState
-initialModelState = ModelState { molCount    = M.empty
-                               , rates       = []
-                               , reactions   = []
-                               , randNums    = []
-                               , events      = []
-                               , seed        = 1
-                               , randGen     = MT.pureMT 1
-                               , systemVol   = 1.0
-                               , currentTime = 0.0
-                               , currentIter = 0
-                               , maxTime     = 0.0
-                               , maxIter     = 10000
-                               , outputFreq  = 1000
+initialModelState = ModelState { molCount      = M.empty
+                               , rates         = []
+                               , reactions     = []
+                               , randNums      = []
+                               , events        = []
+                               , seed          = 1
+                               , randGen       = MT.pureMT 1
+                               , systemVol     = 1.0
+                               , currentTime   = 0.0
+                               , currentIter   = 0
+                               , maxTime       = 0.0
+                               , maxIter       = 10000
+                               , outputFreq    = 1000
                                , outputRequest = []
-                               , outputList  = []
-                               , outfileName = ""
-                               , variables   = M.empty
+                               , outputCache   = []
+                               , outfileName   = ""
+                               , variables     = M.empty
                                }
 
 

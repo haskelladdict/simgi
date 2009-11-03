@@ -17,3 +17,6 @@ def reactions
   a + b -> c  { 1e6 }
 end 
 
+def output
+  [a, b, c]
+end

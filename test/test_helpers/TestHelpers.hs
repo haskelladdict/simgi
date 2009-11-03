@@ -105,6 +105,6 @@ testModelState = ModelState { molCount    = M.empty
                             , maxTime     = 0.0
                             , maxIter     = 10000
                             , outputFreq  = 1000
-                            , outputList  = []
+                            , outputCache = []
                             , outfileName = ""
                             }

@@ -21,7 +21,9 @@
 -- | RpnCalc defines the data structures and a calculator engine
 -- for computing mathematical expressions that have been parsed
 -- into reverse polish notations
-module RpnCalc ( rpn_compute ) where
+module RpnCalc ( rpn_compute
+               , get_val_from_symbolTable 
+               ) where
 
 
 -- imports 
@@ -58,15 +60,18 @@ rpn_compute symbols theTime (RpnStack xs)       = num
     evaluate ys (Time) = (Number theTime):ys
 
     -- extract molecule variable
-    evaluate ys (Variable x) = (Number $ replace_var x):ys
-      where
-        replace_var :: String -> Double
-        replace_var var = 
-          case M.lookup var (molSymbols symbols ) of
-            Just value -> fromIntegral value
-            Nothing    -> case (M.!) (varSymbols symbols) var of
-                            Constant c -> c
-                            Function s -> rpn_compute symbols theTime s
+    evaluate ys (Variable x) = (Number $ get_val_from_symbolTable x theTime symbols):ys 
 
     evaluate ys item = item:ys
 
+
+-- | retrieve the value of a given symbol (either variable or molecule count) from
+-- the symbol table 
+get_val_from_symbolTable :: String -> Double -> SymbolTable -> Double
+get_val_from_symbolTable var time symbols =
+  
+  case M.lookup var (molSymbols symbols) of
+    Just value -> fromIntegral value
+    Nothing    -> case (M.!) (varSymbols symbols) var of
+                    Constant c -> c
+                    Function s -> rpn_compute symbols time s

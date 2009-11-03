@@ -6,9 +6,9 @@
 #
 
 # expected values of molecule counts
-a_expect=0
-b_expect=0
-c_expect=1000
+a_expect=0.000000000000000
+b_expect=0.000000000000000
+c_expect=1000.000000000000000
 
 # 
 simgi_exe="${1}"

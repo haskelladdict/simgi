@@ -21,7 +21,7 @@
 -- | RpnCalc defines the data structures and a calculator engine
 -- for computing mathematical expressions that have been parsed
 -- into reverse polish notations
-module RpnCalc ( rpn_compute, rpn_compute_old ) where
+module RpnCalc ( rpn_compute ) where
 
 
 -- imports 
@@ -32,39 +32,7 @@ import Prelude
 import GenericModel
 import RpnData
 
-
--- | computes an expressions based on an rpn stack
--- molecule names are looked up in a MoleculeMap
--- NOTE: This function expects the RPNstack to be sanitized
--- with respect to the variables, i.e., all variables in
--- the stack are assumed to exist in the VariableMap
-rpn_compute_old :: MoleculeMap -> Double -> RpnStack -> Double
-rpn_compute_old _      _   (RpnStack [(Number x)]) = x
-rpn_compute_old molMap theTime (RpnStack xs)       = num 
-
-  where
-    (Number num) = head . foldl evaluate [] $ xs
-
-    -- evaluate unary function (sin, cos, ..)
-    evaluate ((Number x):ys) (UnaFunc f) = 
-      (Number $ f x):ys
-
-    -- evaluate binary function (*,+,..)
-    evaluate ((Number x):(Number y):ys) (BinFunc f) =
-      (Number $ f y x):ys
-
-    -- extrace current time
-    evaluate ys (Time) = (Number theTime):ys
-
-    -- extract molecule variable
-    evaluate ys (Variable x) = (Number $ replace_var x):ys
-      where
-        replace_var :: String -> Double
-        replace_var = fromIntegral . (M.!) molMap
-
-    evaluate ys item = item:ys
-
-
+-- import Debug.Trace
 
 -- | computes an expressions based on an rpn stack
 -- molecule names are looked up in a MoleculeMap
@@ -93,9 +61,12 @@ rpn_compute symbols theTime (RpnStack xs)       = num
     evaluate ys (Variable x) = (Number $ replace_var x):ys
       where
         replace_var :: String -> Double
-        replace_var var = case M.lookup var (molSymbols symbols ) of
-                            Just value -> fromIntegral value
-                            Nothing    -> (M.!) (varSymbols symbols) var
+        replace_var var = 
+          case M.lookup var (molSymbols symbols ) of
+            Just value -> fromIntegral value
+            Nothing    -> case (M.!) (varSymbols symbols) var of
+                            Constant c -> c
+                            Function s -> rpn_compute symbols theTime s
 
     evaluate ys item = item:ys
 

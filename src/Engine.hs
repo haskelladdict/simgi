@@ -182,7 +182,7 @@ execute_actions :: [EventAction] -> SymbolTable -> Double
 execute_actions [] symbols _     = symbols
 execute_actions (x:xs) symbols t =
   let
-    newSymbol = execute_single_action x symbols t
+    newSymbol = trace ("are here") execute_single_action x symbols t
   in
     execute_actions xs newSymbol t
 
@@ -211,14 +211,14 @@ execute_single_action eventAction symbols t =
         to_int :: Double -> Int
         to_int = floor 
 
-        -- adjust either a molecule count of the value of a
+        -- adjust either a molecule count or the value of a
         -- variable
         adjust_count key val = case M.member key (molSymbols symbols) of
 
           True  -> symbols { molSymbols = 
                              M.insert key (to_int val) (molSymbols symbols) }
           False -> symbols { varSymbols = 
-                             M.insert key val (varSymbols symbols) }
+                             M.insert key (Constant val) (varSymbols symbols) }
 
 
 

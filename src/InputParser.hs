@@ -66,18 +66,18 @@ parse_variable_def = join ( updateState <$> insert_variables <$>
                   <?> "variable definition block" 
 
   where
-    insert_variables :: [(String, Double)] -> ModelState -> ModelState
+    insert_variables :: [(String, MathExpr)] -> ModelState -> ModelState
     insert_variables theVars state = state { variables = M.fromList theVars }
 
 
 -- | parser for a single variable definition
-parse_variable :: CharParser ModelState (String, Double)
+parse_variable :: CharParser ModelState (String, MathExpr)
 parse_variable = tuple_it <$> ((try parse_variable_name) )
                  <*> (symbol "=" *> parse_variable_definition)
               <?> "variable definition"
   
   where
-    tuple_it a b = (a,b)
+    tuple_it one two = (one, two)
 
 
 -- | parser for variable name
@@ -87,8 +87,9 @@ parse_variable_name = identifier
 
 
 -- | parse the definition for a variable
-parse_variable_definition :: CharParser ModelState Double
-parse_variable_definition =  parse_number
+parse_variable_definition :: CharParser ModelState MathExpr
+parse_variable_definition =  (try parse_constant_expression)
+                             <|> (braces parse_function_expression)
                          <?> "variable value"
 
 
@@ -265,7 +266,7 @@ parse_molecule_def = join ( updateState <$> insert_molecules <$>
 
 -- | parse a molecule name and the number of molecules of this type
 parse_molecules :: CharParser ModelState (String,Int)
-parse_molecules = make_molecule <$> (try molname) <*> integer
+parse_molecules = make_molecule <$> (try molname) <*> (symbol "=" *> integer)
                 <?> "molecule expression"
   where
     make_molecule mol aCount = (mol,fromInteger aCount)
@@ -300,7 +301,7 @@ parse_reaction :: CharParser ModelState Reaction
 parse_reaction = setup_reaction 
                  <$> (parse_react_prod <* reservedOp "->") 
                  <*> parse_react_prod 
-                 <*> parse_rate
+                 <*> parse_rate_expression
                  <*> (getState 
                       >>= \(ModelState {systemVol = vol}) -> pure vol)  
   where
@@ -431,10 +432,10 @@ parse_def_block blockName parser =
 -- since currently the order of function/constant parsing 
 -- has to be reversed otherwise rates are always parsed
 -- as trivial Functions. 
-parse_rate :: CharParser ModelState MathExpr
-parse_rate = (try (braces parse_constant_expression))
-          <|> braces parse_function_expression 
-          <?> "constant or function expression"
+parse_rate_expression :: CharParser ModelState MathExpr
+parse_rate_expression = (try (braces parse_constant_expression))
+                        <|> braces parse_function_expression 
+                     <?> "constant or function expression"
 
 
 

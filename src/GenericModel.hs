@@ -63,7 +63,7 @@ type MoleculeMap = M.Map String Int
 -- current value.
 -- NOTE: variables may change their each iteration since
 -- they may be time dependent.
-type VariableMap = M.Map String Double
+type VariableMap = M.Map String MathExpr
 
 
 -- | SymbolTable holds all names we know about such as molecule

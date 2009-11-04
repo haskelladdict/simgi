@@ -48,8 +48,10 @@ check_input (ModelState { molCount    = theMols
     >> check_positive_outfreq outFreq
     >> check_positive_itercount iterCount
     >> check_filename fileName
+    >> check_variable_functions (M.keys theVars) 
+         (extract_variable_names (M.elems theVars))
     >> check_reaction_rate_functions defined_names 
-         (rate_mols theReactions)
+         (extract_variable_names_from_rates theReactions)
 
  where
   -- | extract all reaction participants
@@ -57,14 +59,19 @@ check_input (ModelState { molCount    = theMols
 
 
   -- | extract all definied names (molecules, variables, ...)
-  defined_names = (M.keys theVars) ++ (M.keys theVars)
+  defined_names = (M.keys theMols) ++ (M.keys theVars)
 
-
-  -- | extract all molecules appearing in reaction rate
+  
+  -- | extract all molecules/variables appearing in reaction rate
   -- functions
-  rate_mols theRates = 
+  extract_variable_names_from_rates = extract_variable_names . map rate
+
+  -- | extract all variables/molecule names appearing in a list of
+  -- rpn stacks corresponding to some rate of variable definition
+  -- expression    
+  extract_variable_names inputList =
     let
-      stacks    = foldr extract_rate_func [] . map rate $ theRates 
+      stacks    = foldr extract_rate_func [] inputList
     in
       L.nub . concat . map (foldr extract_rate_vars []) $ stacks
 
@@ -118,11 +125,26 @@ check_reaction_rate_functions :: [String] -> [String]
                               -> Either String Bool
 check_reaction_rate_functions defMols rateMols =
   let 
-    no_mol = rateMols L.\\ defMols
+    noMol = rateMols L.\\ defMols
   in
-    case null no_mol of
+    case null noMol of
       True  -> Right True
       False -> Left $
-        "Error: The following molecules defined in reaction "
+        "Error: The following molecules or variables defined in reaction "
         ++ "rates do not exist: " 
-        ++ (L.concat $ L.intersperse "," no_mol)
+        ++ (L.concat $ L.intersperse "," noMol)
+
+
+-- | make sure the user defined variable expressions use only definied
+-- symbols (i.e other variables) 
+check_variable_functions :: [String] -> [String] -> Either String Bool
+check_variable_functions defVars usedVars =
+  let 
+    noVar = usedVars L.\\ defVars
+  in
+    case null noVar of
+      True  -> Right True
+      False -> Left $
+        "Error: The following variables used in variable definitions "
+        ++ "do not exist: " 
+        ++ (L.concat $ L.intersperse "," noVar)

@@ -63,58 +63,58 @@ type TestCase = (String, ExpectedOutput)
 --- NOTE: for now we simply test if parsing succeeds
 simpleReactParseTests :: [TestCase]
 simpleReactParseTests = 
-  [ ("x + y -> z { 1e6 }",
+  [ ("x + y -> z | 1e6 |",
     Reaction (Constant 1e6) 
              [("y",id),("x",id)]
              [("x",-1),("y",-1),("z",1)])
 
-  , ("x + y + z -> w { 10.3 }",
+  , ("x + y + z -> w | 10.3 |",
     Reaction (Constant 10.3)
              [("z",id),("y",id),("x",id)]
              [("x",-1),("y",-1),("z",-1),("w",1)])
 
-  , ("x + y + z -> w { x*y }",
+  , ("x + y + z -> w | {x*y} |",
     Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
               BinFunc (*)])
              [("z",id),("y",id),("x",id)]
              [("x",-1),("y",-1),("z",-1),("w",1)])
 
-  , ("2x + 2y + z -> nil { exp(-TIME) }",
+  , ("2x + 2y + z -> nil | { exp(-TIME) } |",
     Reaction (Function . RpnStack $ [Variable "TIME", Number (-1.0)
               , BinFunc (*), UnaFunc exp])
              [("z",id),("y",\a -> 0.5 * a * (a-1))
               ,("x",\a -> 0.5 * a * (a-1))]
              [("x",-2),("y",-2),("z",-1)])
 
-  , ("2x + y + z -> 2x + 20y + 5z { x+y+z }",
+  , ("2x + y + z -> 2x + 20y + 5z | {x+y+z } |",
     Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
               BinFunc (+), Variable "z", BinFunc (+)])
              [("z",id),("y",id),("x",\a -> 0.5 * a * (a-1))]
              [("y",19),("z",4)])
 
-  , ("2x + y + z -> 2x + 20y + 5z { x*   y*  z }",
+  , ("2x + y + z -> 2x + 20y + 5z | { x*   y*  z } |",
     Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
               BinFunc (*), Variable "z", BinFunc (*)])
              [("z",id),("y",id),("x",\a -> 0.5 * a * (a-1))]
              [("y",19),("z",4)])
 
-  , ("2   x+ y+ z-> 2  x + 20 y + 5z{x*y   *  z }",
+  , ("2   x+ y+ z-> 2  x + 20 y + 5z|{x*y   *  z } |",
     Reaction (Function . RpnStack $ [Variable "x", Variable "y", 
               BinFunc (*), Variable "z", BinFunc (*)])
              [("z",id),("y",id),("x",\a -> 0.5 * a * (a-1))]
              [("y",19),("z",4)])
 
-  , ("x + y + z -> x + y + z { x-x+y-y+z-z }",
+  , ("x + y + z -> x + y + z |{ x-x+y-y+z-z }|",
     Reaction (Function . RpnStack $ [Number 0.0])
              [("z",id),("y",id),("x",id)]
              [])
 
-  , ("nil -> x + y + z { x-x+y-y+z-z }",
+  , ("nil -> x + y + z |{ x-x+y-y+z-z }|",
     Reaction (Function . RpnStack $ [Number 0.0])
              []
              [("x",1),("y",1),("z",1)])
 
-  , ("nil -> nil { sqrt(2.0) }",
+  , ("nil -> nil |{ sqrt(2.0) }  |",
     Reaction (Function . RpnStack $ [Number 2.0, UnaFunc sqrt])
              []
              [])

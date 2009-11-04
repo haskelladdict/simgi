@@ -451,10 +451,12 @@ parse_def_block blockName parser =
 -- has to be reversed otherwise rates are always parsed
 -- as trivial Functions. 
 parse_rate_expression :: CharParser ModelState MathExpr
-parse_rate_expression = (try (braces parse_constant_expression))
-                        <|> braces parse_function_expression 
+parse_rate_expression = (try (lineToken parse_constant_expression))
+                        <|> (lineToken (braces parse_function_expression)) 
                      <?> "constant or function expression"
 
+  where
+    lineToken = between (symbol "|") (symbol "|") 
 
 
 -- | parser for a simple rate constant expression

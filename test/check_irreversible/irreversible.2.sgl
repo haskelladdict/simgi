@@ -14,7 +14,7 @@ def molecules
 end
 
 def reactions
-  b -> c  { 1e6 }
+  b -> c  | 1e6 |
 end 
 
 def output

@@ -20,11 +20,11 @@ def molecules
 end
 
 def reactions
-  y      -> x         { 2.0   }
-  x + y  -> nil       { 0.1   }
-  x      -> 2x + z    { 104.0 }
-  2x     -> nil       { 0.016 }
-  z      -> y         { 26.0  }
+  y      -> x         | 2.0   |
+  x + y  -> nil       | 0.1   |
+  x      -> 2x + z    | 104.0 |
+  2x     -> nil       | 0.016 |
+  z      -> y         | 26.0  |
 end
 
 def output

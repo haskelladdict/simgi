@@ -19,9 +19,9 @@ def molecules
 end
 
 def reactions
-  x      -> 2x       { 10.0 }
-  x + y  -> 2y       { 0.01 }
-  y      -> nil      { 10.0 }
+  x      -> 2x       | 10.0 |
+  x + y  -> 2y       | 0.01 |
+  y      -> nil      | 10.0 |
 end 
 
 def output

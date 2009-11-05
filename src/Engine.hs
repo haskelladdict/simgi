@@ -64,7 +64,7 @@ gillespie_driver handle simTime dmpIter state =
 
     -- next iteration if we're not at the end
     >> if curTime >= simTime
-         then return ()
+         then trace (show simTime ++ "  " ++ show curTime) return ()
          else gillespie_driver handle simTime dmpIter newState
 
 

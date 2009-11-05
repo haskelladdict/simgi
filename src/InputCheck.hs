@@ -48,7 +48,7 @@ check_input (ModelState { molCount    = theMols
     >> check_positive_outfreq outFreq
     >> check_positive_itercount iterCount
     >> check_filename fileName
-    >> check_variable_functions (M.keys theVars) 
+    >> check_variable_functions defined_names
          (extract_variable_names (M.elems theVars))
     >> check_reaction_rate_functions defined_names 
          (extract_variable_names_from_rates theReactions)

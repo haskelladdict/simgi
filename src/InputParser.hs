@@ -131,18 +131,23 @@ parse_events = Event <$> (parse_trigger) <*> (reservedOp "=>" *> parse_actions)
 
 
 -- | parser for an event trigger
-parse_trigger :: CharParser ModelState EventTrigger
-parse_trigger = braces parse_trigger_expression 
+parse_trigger :: CharParser ModelState [EventTrigger]
+parse_trigger = braces parse_trigger_expressions
              <?> "event trigger block"
 
 
+-- | parse a list of trigger expressions
+parse_trigger_expressions :: CharParser ModelState [EventTrigger]
+parse_trigger_expressions = parse_single_trigger_expression `sepEndBy` semi 
+                       <?> "event trigger"
 
--- | parse a trigger expression
-parse_trigger_expression :: CharParser ModelState EventTrigger
-parse_trigger_expression = 
+
+-- | parse a single trigger expression
+parse_single_trigger_expression :: CharParser ModelState EventTrigger
+parse_single_trigger_expression = 
   EventTrigger <$> parse_infix_to_rpn <*> parse_relational
                <*> parse_infix_to_rpn
-                        <?> "event trigger expression"
+                        <?> "single event trigger expression"
 
 
 
@@ -169,14 +174,14 @@ parse_actions = braces parse_action_expressions
 parse_action_expressions :: CharParser ModelState [EventAction]
 parse_action_expressions = 
   parse_single_action_expression `sepEndBy` semi 
-                       <?> "event action"
+                       <?> "event action expression"
 
 
 -- | parser for a single event action expression
 parse_single_action_expression :: CharParser ModelState EventAction
 parse_single_action_expression = EventAction <$> 
   (molname) <*> (reservedOp "=" *> parse_function_expression)
-                              <?> "event action expression"
+                              <?> "single event action expression"
 
 
 

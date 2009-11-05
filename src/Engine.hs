@@ -157,9 +157,9 @@ handle_events (x:xs) symbols t =
 handle_single_event :: Event -> SymbolTable -> Double -> SymbolTable
 handle_single_event evt symbols t =
   let
-    trigger      = evtTrigger evt
+    triggers     = evtTrigger evt
     actions      = evtActions evt
-    triggerVal   = compute_trigger symbols t trigger
+    triggerVal   = compute_trigger symbols t triggers
   in 
     if triggerVal
       then execute_actions actions symbols t 
@@ -168,13 +168,13 @@ handle_single_event evt symbols t =
 
 
 -- | compute the value of a trigger
-compute_trigger :: SymbolTable -> Double -> EventTrigger -> Bool
-compute_trigger symbols t trigger = leftTrigger `triggerOp` rightTrigger
+compute_trigger :: SymbolTable -> Double -> [EventTrigger] -> Bool
+compute_trigger symbols t = foldr (\val acc -> (acc && eval_trigger val)) True
 
   where
-    leftTrigger  = rpn_compute symbols t (trigLeftExpr trigger)
-    rightTrigger = rpn_compute symbols t (trigRightExpr trigger)
-    triggerOp    = trigRelation trigger
+    eval_trigger x = (trigRelation x) (leftTrigger x) (rightTrigger x)
+    leftTrigger    = rpn_compute symbols t . trigLeftExpr 
+    rightTrigger   = rpn_compute symbols t . trigRightExpr
 
 
 
@@ -241,6 +241,7 @@ generate_output afreq it t symTable outVars outlist
                        }
 
 
+
 -- | given a list of variable or molecule names, goes through the
 -- symbol table, grabs the current values associated with the variables,
 -- and returns them as a list
@@ -248,6 +249,7 @@ grab_output_data :: [String] -> Double -> SymbolTable -> [Double]
 grab_output_data vars time symbols = 
   foldr (\x acc -> (get_val_from_symbolTable x time symbols):acc) [] vars
                                 
+
 
 -- | depending on which reaction happened adjust the number of 
 -- molecules in the system
@@ -315,6 +317,7 @@ create_initial_output (ModelState { molCount      = initialMols
   where
     symbols = SymbolTable initialMols initialVars
     initialOutput = grab_output_data outVars 0.0 symbols
+
 
 
 -- | set up the initial state

@@ -199,16 +199,18 @@ data EventTrigger = EventTrigger
 -- | data type keeping track of possible events occuring during
 -- the simulation. Each event consist of a
 --
---   <trigger>: numerical expression that triggers the event
---     when equal to 0 
+--   <trigger>: list of expressions each evaluating to a bool.
+--              event is triggered if all expression evaluate to true
+--              FIXME: In the future we should support more complex 
+--                      boolen operations involving &&, ||, etc.
 -- 
---   <action>: an expression of the form 
+--   <action>: a list of semicolon separated expressions of the form 
 --
---              mol = <numerical expression>
+--              mol/var = <numerical expression>
 --
--- changing the number of mol by <numerical expression>
+--             changing the value of mol/var by <numerical expression>
 --
-data Event = Event { evtTrigger :: EventTrigger
+data Event = Event { evtTrigger :: [EventTrigger]
                    , evtActions :: [EventAction]
                    }
 

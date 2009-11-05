@@ -43,15 +43,18 @@ check_input (ModelState { molCount    = theMols
                         , outputFreq  = outFreq
                         , outfileName = fileName
                         , variables   = theVars
+                        , events      = theEvents
                         }) 
   = check_molecules (M.keys theMols) (react_mols theReactions)
     >> check_positive_outfreq outFreq
     >> check_positive_itercount iterCount
     >> check_filename fileName
-    >> check_variable_functions defined_names
-         (extract_variable_names (M.elems theVars))
-    >> check_reaction_rate_functions defined_names 
-         (extract_variable_names_from_rates theReactions)
+    >> check_variable_names defined_names
+         (extract_variable_names (M.elems theVars)) "variables"
+    >> check_variable_names defined_names 
+         (extract_variable_names_from_rates theReactions) "reactions"
+    >> check_variable_names defined_names
+         (extract_variable_names_from_events theEvents) "events"
 
  where
   -- | extract all reaction participants
@@ -62,25 +65,52 @@ check_input (ModelState { molCount    = theMols
   defined_names = (M.keys theMols) ++ (M.keys theVars)
 
   
-  -- | extract all molecules/variables appearing in reaction rate
-  -- functions
-  extract_variable_names_from_rates = extract_variable_names . map rate
 
-  -- | extract all variables/molecule names appearing in a list of
-  -- rpn stacks corresponding to some rate of variable definition
-  -- expression    
-  extract_variable_names inputList =
-    let
-      stacks    = foldr extract_rate_func [] inputList
-    in
-      L.nub . concat . map (foldr extract_rate_vars []) $ stacks
+-- | extract all molecules/variables appearing in reaction rate
+-- functions
+extract_variable_names_from_rates :: [Reaction] -> [String]
+extract_variable_names_from_rates = extract_variable_names . map rate
 
-      where
-        extract_rate_func (Function a) acc = (toList a):acc
-        extract_rate_func _            acc = acc
 
-        extract_rate_vars (Variable a) acc = a:acc
-        extract_rate_vars _            acc = acc
+
+-- | extract all variable/molecule names appearing in a list of
+-- rpn stacks corresponding to some rate of variable definition
+-- expression    
+extract_variable_names :: [MathExpr] -> [String]
+extract_variable_names inputList =
+  let
+    stacks    = foldr extract_rate_func [] inputList
+  in
+    L.nub . concat . map (foldr extract_rate_vars []) $ stacks
+
+    where
+      extract_rate_func (Function a) acc = (toList a):acc
+      extract_rate_func _            acc = acc
+
+      extract_rate_vars (Variable a) acc = a:acc
+      extract_rate_vars _            acc = acc
+
+
+
+-- | extract all variable/molecule names from expressions inside
+-- events, i.e. insider triggers and actions
+extract_variable_names_from_events :: [Event] -> [String]
+extract_variable_names_from_events theEvents = 
+
+  L.nub $ allActionNames theEvents ++
+    (extract_variable_names $ triggerExps theEvents ++ actionExps theEvents)
+
+  where
+    allTriggers = concat . foldr ((:) . evtTrigger) []
+    triggerExps = foldr (\x acc -> 
+                    ((Function $ trigLeftExpr x):(Function $ trigRightExpr x):acc)) 
+                    [] . allTriggers
+                    
+    allActions  = concat . foldr ((:) . evtActions) []
+    actionExps  = foldr (\x acc -> (evtAct x:acc)) [] . allActions
+
+    allActionNames = foldr (\x acc -> (evtName x:acc)) [] . allActions
+
 
 
 -- | make sure the user specified an output file name
@@ -88,6 +118,7 @@ check_filename :: String -> Either String Bool
 check_filename name 
   | name == ""  = Left "Error: Please specify an output file name!"
   | otherwise   = Right True
+
 
 
 -- | make sure all molecules in reactions are defined
@@ -121,24 +152,41 @@ check_positive_itercount iter =
 
 -- | make sure the user defined reaction rate function reference
 -- only existing molecule names
-check_reaction_rate_functions :: [String] -> [String] 
-                              -> Either String Bool
-check_reaction_rate_functions defMols rateMols =
+check_variable_names :: [String] -> [String] -> String -> Either String Bool
+check_variable_names defMols rateMols checkType =
   let 
     noMol = rateMols L.\\ defMols
   in
     case null noMol of
       True  -> Right True
       False -> Left $
-        "Error: The following molecules or variables defined in reaction "
-        ++ "rates do not exist: " 
-        ++ (L.concat $ L.intersperse "," noMol)
+        "Error: The following molecules or variables defined in the "
+        ++ checkType
+        ++ " block do not exist:\n -->  " 
+        ++ (L.concat $ L.intersperse ", " noMol)
 
 
+{-
 -- | make sure the user defined variable expressions use only definied
--- symbols (i.e other variables) 
+-- symbols (i.e other variables or molecule names) 
 check_variable_functions :: [String] -> [String] -> Either String Bool
 check_variable_functions defVars usedVars =
+  let 
+    noVar = usedVars L.\\ defVars
+  in
+    case null noVar of
+      True  -> Right True
+      False -> Left $
+        "Error: The following molvariables used in variable definitions "
+        ++ "do not exist: " 
+        ++ (L.concat $ L.intersperse "," noVar)
+
+
+
+-- | make sure the user defined trigger and action expressions in
+-- event blocks use only definied symbols 
+check_trigger_functions :: [String] -> [String] -> Either String Bool
+check_trigger_functions defVars usedVars =
   let 
     noVar = usedVars L.\\ defVars
   in
@@ -148,3 +196,4 @@ check_variable_functions defVars usedVars =
         "Error: The following variables used in variable definitions "
         ++ "do not exist: " 
         ++ (L.concat $ L.intersperse "," noVar)
+-}

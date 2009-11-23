@@ -107,9 +107,9 @@ extract_variable_names_from_events theEvents =
                     [] . allTriggers
                     
     allActions  = concat . foldr ((:) . evtActions) []
-    actionExps  = foldr (\x acc -> (evtAct x:acc)) [] . allActions
+    actionExps  = foldr ((:) . evtAct) [] . allActions
 
-    allActionNames = foldr (\x acc -> (evtName x:acc)) [] . allActions
+    allActionNames = foldr ((:) . evtName) [] . allActions
 
 
 

@@ -164,36 +164,3 @@ check_variable_names defMols rateMols checkType =
         ++ checkType
         ++ " block do not exist:\n -->  " 
         ++ (L.concat $ L.intersperse ", " noMol)
-
-
-{-
--- | make sure the user defined variable expressions use only definied
--- symbols (i.e other variables or molecule names) 
-check_variable_functions :: [String] -> [String] -> Either String Bool
-check_variable_functions defVars usedVars =
-  let 
-    noVar = usedVars L.\\ defVars
-  in
-    case null noVar of
-      True  -> Right True
-      False -> Left $
-        "Error: The following molvariables used in variable definitions "
-        ++ "do not exist: " 
-        ++ (L.concat $ L.intersperse "," noVar)
-
-
-
--- | make sure the user defined trigger and action expressions in
--- event blocks use only definied symbols 
-check_trigger_functions :: [String] -> [String] -> Either String Bool
-check_trigger_functions defVars usedVars =
-  let 
-    noVar = usedVars L.\\ defVars
-  in
-    case null noVar of
-      True  -> Right True
-      False -> Left $
-        "Error: The following variables used in variable definitions "
-        ++ "do not exist: " 
-        ++ (L.concat $ L.intersperse "," noVar)
--}

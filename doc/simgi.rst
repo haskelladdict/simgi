@@ -6,7 +6,7 @@ simgi - A Stochastic Gillespie Simulator for Molecular Systems
 
 :email: haskelladdict at users dot sourceforge dot net
 
-:Version: 0.1 (05/30/2009)
+:Version: 0.2 (11/24/2009)
 
 
 Contents
@@ -34,15 +34,11 @@ More information is available from the `project summary page <http://sourceforge
 Status 
 ------
 
-The 0.1 release of **simgi** provides a fully functional simulator 
-but should still be treated as an alpha version since several parts 
-of the code are currently not fully optimal. This is particularly 
-true for the random number generator which presently leverages the 
-StdGen instance of RandomGen [2]_ and is probably not sufficient for 
-large simulations in terms of random number quality. Later revisions 
-of simgi will have a more sophisticated random number generator. 
-Nevertheless, for small systems (such as the examples in the 
-*Models/* directory) the current implementation should be sufficient. 
+The 0.2 release of **simgi** provides a fully functional simulator 
+which has been tested on several model systems some of which are fairly
+large. The engine itself is not yet fully optimized for speed. Furthermore,
+version 0.1's random number generator (RandomGen) has been replaced which a much 
+more powerful and faster implementation of a 64bit Mersenne Twister generator.
 
 
 Download
@@ -58,6 +54,7 @@ Compilaton of **simgi** requires
 
 - `>=ghc-6.10 <http://haskell.org/ghc/>`_
 - `>=gmp-4.3  <http://gmplib.org/>`_  
+- `>=mersenne-random-pure64 <http://hackage.haskell.org/package/mersenne-random-pure64>`_
 
 To compile the documentation (not required), you will also need
 
@@ -107,7 +104,14 @@ the Haskell language specs
   token. Everything within a comment block is ignored by the parser 
   and block comments can be nested.
 
-Currently, the SDL specs define the following block types with their 
+
+Below we list all SGL blocks available for describing simulations.
+Presently, the order of blocks matters and should be exactly in the 
+same order in which they are described below. Several SGL blocks are 
+optional, can be left out, and are indicated as such below. This 
+implies that all non-optional blocks are required.
+
+Currently, the SGL specs define the following block types with their 
 respective block commands and block content:
 
 
@@ -120,18 +124,19 @@ respective block commands and block content:
   *time = <double>*
     Maximum simulation time in seconds. Default is 0.0 s.
 
-  *outputIter = <Integer>*
+  *outputBuffer = <Integer>*
     Output will be kept in memory and written to the output file and 
-    stdout every *outputIter* iterations. Larger values should result 
+    stdout every *outputBuffer* iterations. Larger values should result 
     in faster simulations but require more system memory. 
     Default is to write output every 10000 iterations.
 
-    Note: *outputIter* only affects how often output is written to 
+    Note: *outputBuffer* only affects how often output is written to 
     the output file, not how much is being accumulated during a 
     simulation (see outputFreq parameter).
 
   *outputFreq = <Integer>*
-    Frequency with which output is generated. Default is 1000.
+    Frequency with which output is generated and written to the
+    output file. Default is 1000.
 
   *systemVol = <double>*
     Volume of the simulation system in liters. This is needed to 

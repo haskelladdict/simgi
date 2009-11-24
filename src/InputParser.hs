@@ -238,10 +238,10 @@ parse_parameter_def = parse_def_block "parameters" (many parse_parameters)
 parse_parameters :: CharParser ModelState ()
 parse_parameters = parse_time
                 <|> parse_outputFile
-                <|> parse_outputIter
+                <|> parse_outputBuffer
                 <|> parse_outputFreq
                 <|> parse_systemVol
-                <?> "time, outputIter, systemVol, outputFreq,\
+                <?> "time, outputBuffer, systemVol, outputFreq,\
                     \outputFile"
 
 
@@ -294,13 +294,13 @@ parse_filename = stringLiteral
 
 
 -- | parse the output iteration specification if present
-parse_outputIter :: CharParser ModelState ()
-parse_outputIter = join (updateState <$> insert_outputIter
-                        <$> (reserved "outputIter" *> reservedOp "="
+parse_outputBuffer :: CharParser ModelState ()
+parse_outputBuffer = join (updateState <$> insert_outputBuffer
+                     <$> (reserved "outputBuffer" *> reservedOp "="
                              *> integer ))
 
   where
-    insert_outputIter i state = state { maxIter = i }
+    insert_outputBuffer i state = state { outputBufferSize = i }
 
 
 

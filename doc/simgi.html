@@ -316,7 +316,7 @@ ul.auto-toc {
 <tr class="field"><th class="docinfo-name">email:</th><td class="field-body">haskelladdict at users dot sourceforge dot net</td>
 </tr>
 <tr><th class="docinfo-name">Version:</th>
-<td>0.1 (05/30/2009)</td></tr>
+<td>0.2 (11/24/2009)</td></tr>
 </tbody>
 </table>
 <div class="section" id="contents">
@@ -335,22 +335,18 @@ ul.auto-toc {
 <div class="section" id="introduction">
 <h1>Introduction</h1>
 <p><strong>simgi</strong> is a fairly simple and straightforward stochastic simulator
-based on Gillspie's <a class="footnote-reference" href="#id7" id="id1">[1]</a> direct method. <strong>simgi</strong> is implemented in
+based on Gillspie's <a class="footnote-reference" href="#id6" id="id1">[1]</a> direct method. <strong>simgi</strong> is implemented in
 pure Haskell, command line driven and comes with a flexible simulation
 description language called <a class="reference internal" href="#simgi-model-generation-language-sgl">Simgi Model Generation Language (SGL)</a>.
 More information is available from the <a class="reference external" href="http://sourceforge.net/projects/simgi">project summary page</a>.</p>
 </div>
 <div class="section" id="status">
 <h1>Status</h1>
-<p>The 0.1 release of <strong>simgi</strong> provides a fully functional simulator
-but should still be treated as an alpha version since several parts
-of the code are currently not fully optimal. This is particularly
-true for the random number generator which presently leverages the
-StdGen instance of RandomGen <a class="footnote-reference" href="#id8" id="id2">[2]</a> and is probably not sufficient for
-large simulations in terms of random number quality. Later revisions
-of simgi will have a more sophisticated random number generator.
-Nevertheless, for small systems (such as the examples in the
-<em>Models/</em> directory) the current implementation should be sufficient.</p>
+<p>The 0.2 release of <strong>simgi</strong> provides a fully functional simulator
+which has been tested on several model systems some of which are fairly
+large. The engine itself is not yet fully optimized for speed. Furthermore,
+version 0.1's random number generator (RandomGen) has been replaced which a much
+more powerful and faster implementation of a 64bit Mersenne Twister generator.</p>
 </div>
 <div class="section" id="download">
 <h1>Download</h1>
@@ -362,6 +358,7 @@ Nevertheless, for small systems (such as the examples in the
 <ul class="simple">
 <li><a class="reference external" href="http://haskell.org/ghc/">&gt;=ghc-6.10</a></li>
 <li><a class="reference external" href="http://gmplib.org/">&gt;=gmp-4.3</a></li>
+<li><a class="reference external" href="http://hackage.haskell.org/package/mersenne-random-pure64">&gt;=mersenne-random-pure64</a></li>
 </ul>
 <p>To compile the documentation (not required), you will also need</p>
 <ul class="simple">
@@ -387,8 +384,8 @@ def &lt;block name&gt;
 
 end
 </pre>
-<p>The (but see <a class="footnote-reference" href="#id9" id="id3">[3]</a>) formatting of the input files is very flexible. In
-particular, neither newlines <a class="footnote-reference" href="#id10" id="id4">[4]</a> nor extraneous whitespace matter.
+<p>The (but see <a class="footnote-reference" href="#id8" id="id2">[3]</a>) formatting of the input files is very flexible. In
+particular, neither newlines <a class="footnote-reference" href="#id9" id="id3">[4]</a> nor extraneous whitespace matter.
 Hence, the above SDL block could also be written on a single line.
 However, it is strongly recommended to stick to a consistent and
 &quot;visually simple&quot; layout to aid in &quot;comprehending&quot; the underlying
@@ -404,7 +401,12 @@ newlines in order to be parsed correctly.</li>
 token. Everything within a comment block is ignored by the parser
 and block comments can be nested.</li>
 </ul>
-<p>Currently, the SDL specs define the following block types with their
+<p>Below we list all SGL blocks available for describing simulations.
+Presently, the order of blocks matters and should be exactly in the
+same order in which they are described below. Several SGL blocks are
+optional, can be left out, and are indicated as such below. This
+implies that all non-optional blocks are required.</p>
+<p>Currently, the SGL specs define the following block types with their
 respective block commands and block content:</p>
 <p><strong>parameter block:</strong> <em>&lt;block name&gt; = parameters</em></p>
 <blockquote>
@@ -414,22 +416,23 @@ supported:</p>
 <dl class="docutils">
 <dt><em>time = &lt;double&gt;</em></dt>
 <dd>Maximum simulation time in seconds. Default is 0.0 s.</dd>
-<dt><em>outputIter = &lt;Integer&gt;</em></dt>
+<dt><em>outputBuffer = &lt;Integer&gt;</em></dt>
 <dd><p class="first">Output will be kept in memory and written to the output file and
-stdout every <em>outputIter</em> iterations. Larger values should result
+stdout every <em>outputBuffer</em> iterations. Larger values should result
 in faster simulations but require more system memory.
 Default is to write output every 10000 iterations.</p>
-<p class="last">Note: <em>outputIter</em> only affects how often output is written to
+<p class="last">Note: <em>outputBuffer</em> only affects how often output is written to
 the output file, not how much is being accumulated during a
 simulation (see outputFreq parameter).</p>
 </dd>
 <dt><em>outputFreq = &lt;Integer&gt;</em></dt>
-<dd>Frequency with which output is generated. Default is 1000.</dd>
+<dd>Frequency with which output is generated and written to the
+output file. Default is 1000.</dd>
 <dt><em>systemVol = &lt;double&gt;</em></dt>
 <dd>Volume of the simulation system in liters. This is needed to
 properly compute the reaction rates in molar units. If rates
 should rather be interpreted as reaction propensities (like
-in <a class="footnote-reference" href="#id7" id="id5">[1]</a>) please set <em>systemVol = nil</em>. Default is a system
+in <a class="footnote-reference" href="#id6" id="id4">[1]</a>) please set <em>systemVol = nil</em>. Default is a system
 volume of 1.0 liter.</dd>
 <dt><em>outputFile = &lt;quoted string&gt;</em>:</dt>
 <dd>Name of the output file. This is the only required parameter
@@ -476,7 +479,7 @@ rate expressions can be arbitrary complex functions of the
 instantaneous simulation time and the instantaneous numbers of any
 molecule in the model. The parser will interpret any string in the
 rate expression as a molecule name in a case sensitive fashion,
-a mathematical operator or function (see <a class="footnote-reference" href="#id11" id="id6">[5]</a> for supported
+a mathematical operator or function (see <a class="footnote-reference" href="#id10" id="id5">[5]</a> for supported
 functions), or the special variable TIME which refers to the
 current simulation time. Hence, do <strong>not</strong> use any of the
 mathematical keywords as a molecule name; this leads to undefined
@@ -545,34 +548,34 @@ the corresponding actions are carried out that same timestep.</p>
 </div>
 <div class="section" id="references">
 <h1>References</h1>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> Daniel T. Gillespie (1977). &quot;Exact Stochastic Simulation of Coupled Chemical Reactions&quot;. The Journal of Physical Chemistry 81 (25): 2340-2361</td></tr>
+</tbody>
+</table>
 <table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id5">2</a>)</em> Daniel T. Gillespie (1977). &quot;Exact Stochastic Simulation of Coupled Chemical Reactions&quot;. The Journal of Physical Chemistry 81 (25): 2340-2361</td></tr>
+<tr><td class="label">[2]</td><td><a class="reference external" href="http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html">http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id8" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td><a class="reference external" href="http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html">http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[3]</a></td><td>Since <strong>simgi</strong> currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>Since <strong>simgi</strong> currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[4]</a></td><td>An exception to this rule are line comments starting with <tt class="docutils literal"><span class="pre">--</span></tt> which ingnore everything until the next newline.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id4">[4]</a></td><td>An exception to this rule are line comments starting with <tt class="docutils literal"><span class="pre">--</span></tt> which ingnore everything until the next newline.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id11" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id6">[5]</a></td><td>Rate expressions can contain any arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot; (exponentiation), and the mathematical functions <tt class="docutils literal">sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, erf, erfc, abs</tt>.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[5]</a></td><td>Rate expressions can contain any arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot; (exponentiation), and the mathematical functions <tt class="docutils literal">sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, erf, erfc, abs</tt>.</td></tr>
 </tbody>
 </table>
 </div>

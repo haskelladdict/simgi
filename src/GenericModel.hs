@@ -232,7 +232,7 @@ data ModelState = ModelState { molCount      :: MoleculeMap
                              , currentTime   :: Double
                              , currentIter   :: Integer
                              , maxTime       :: Double
-                             , maxIter       :: Integer
+                             , outputBufferSize :: Integer
                              , outputFreq    :: Integer
                              , outputRequest :: [String]
                              , outputCache   :: [Output]
@@ -256,23 +256,23 @@ data Output = Output { iteration  :: Integer
 -- | initial model state to be partially filled by the 
 -- parser from the input deck
 initialModelState :: ModelState
-initialModelState = ModelState { molCount      = M.empty
-                               , rates         = []
-                               , reactions     = []
-                               , randNums      = []
-                               , events        = []
-                               , seed          = 1
-                               , randGen       = MT.pureMT 1
-                               , systemVol     = 1.0
-                               , currentTime   = 0.0
-                               , currentIter   = 0
-                               , maxTime       = 0.0
-                               , maxIter       = 10000
-                               , outputFreq    = 1000
-                               , outputRequest = []
-                               , outputCache   = []
-                               , outfileName   = ""
-                               , variables     = M.empty
+initialModelState = ModelState { molCount         = M.empty
+                               , rates            = []
+                               , reactions        = []
+                               , randNums         = []
+                               , events           = []
+                               , seed             = 1
+                               , randGen          = MT.pureMT 1
+                               , systemVol        = 1.0
+                               , currentTime      = 0.0
+                               , currentIter      = 0
+                               , maxTime          = 0.0
+                               , outputBufferSize = 10000
+                               , outputFreq       = 1000
+                               , outputRequest    = []
+                               , outputCache      = []
+                               , outfileName      = ""
+                               , variables        = M.empty
                                }
 
 

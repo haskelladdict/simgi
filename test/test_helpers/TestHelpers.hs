@@ -94,17 +94,17 @@ defaultResult = TestResult { status = False
 -- to deal with unit conversion when testing the
 -- reaction parser
 testModelState :: ModelState
-testModelState = ModelState { molCount    = M.empty
-                            , rates       = []
-                            , reactions   = []
-                            , randNums    = []
-                            , events      = []
-                            , systemVol   = -1.0 -- negative!
-                            , currentTime = 0.0
-                            , currentIter = 0
-                            , maxTime     = 0.0
-                            , maxIter     = 10000
-                            , outputFreq  = 1000
-                            , outputCache = []
-                            , outfileName = ""
+testModelState = ModelState { molCount         = M.empty
+                            , rates            = []
+                            , reactions        = []
+                            , randNums         = []
+                            , events           = []
+                            , systemVol        = -1.0 -- negative!
+                            , currentTime      = 0.0
+                            , currentIter      = 0
+                            , maxTime          = 0.0
+                            , outputBufferSize = 10000
+                            , outputFreq       = 1000
+                            , outputCache      = []
+                            , outfileName      = ""
                             }

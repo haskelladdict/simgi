@@ -70,7 +70,7 @@ main =
                   initialState  = create_initial_state parsedState 
                                    initialOutput
                   totalTime     = maxTime parsedState 
-                  dataDumpIter  = maxIter parsedState
+                  dataDumpIter  = outputBufferSize parsedState
                   outFile       = outfileName parsedState
                 in
 

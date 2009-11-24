@@ -54,12 +54,12 @@ startup_message state = show_version
 
 
   where
-    (ModelState { seed        = simSeed 
-                , maxTime     = simTime
-                , systemVol   = simVol
-                , maxIter     = simLogFreq
-                , outputFreq  = simFreq
-                , outfileName = simOutFile 
+    (ModelState { seed             = simSeed 
+                , maxTime          = simTime
+                , systemVol        = simVol
+                , outputBufferSize = simLogFreq
+                , outputFreq       = simFreq
+                , outfileName      = simOutFile 
                 }) = state
 
 

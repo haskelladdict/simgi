@@ -37,13 +37,13 @@ import RpnData
 -- should this ever become more extensive we should probably consider
 -- using Control.Monad.Error
 check_input :: ModelState -> Either String Bool 
-check_input (ModelState { molCount    = theMols
-                        , reactions   = theReactions
-                        , maxIter     = iterCount
-                        , outputFreq  = outFreq
-                        , outfileName = fileName
-                        , variables   = theVars
-                        , events      = theEvents
+check_input (ModelState { molCount         = theMols
+                        , reactions        = theReactions
+                        , outputBufferSize = iterCount
+                        , outputFreq       = outFreq
+                        , outfileName      = fileName
+                        , variables        = theVars
+                        , events           = theEvents
                         }) 
   = check_molecules (M.keys theMols) (react_mols theReactions)
     >> check_positive_outfreq outFreq

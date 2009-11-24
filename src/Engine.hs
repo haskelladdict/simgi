@@ -70,10 +70,10 @@ gillespie_driver handle simTime dmpIter state =
 -- | updates the state for the next iteration
 update_state :: Integer -> ModelState -> (Double,ModelState)    
 update_state dataDumpIter 
-             state@(ModelState { currentTime = t 
-                               , maxIter     = it
+             state@(ModelState { currentTime      = t 
+                               , outputBufferSize = it
                                }) 
-  = (t, state { maxIter = it + dataDumpIter, outputCache = [] })
+  = (t, state { outputBufferSize = it + dataDumpIter, outputCache = [] })
 
 
 
@@ -81,18 +81,18 @@ update_state dataDumpIter
 run_gillespie :: GillespieState [Output]
 run_gillespie = get
 
-  >>= \inState@(ModelState { molCount      = in_mols
-                           , reactions     = in_reacts
-                           , randGen       = rGen
-                           , events        = molEvents
-                           , currentTime   = t
-                           , currentIter   = it
-                           , maxTime       = t_max
-                           , maxIter       = it_max
-                           , outputFreq    = freq
-                           , outputRequest = outputVars
-                           , outputCache   = output
-                           , variables     = theVars
+  >>= \inState@(ModelState { molCount         = in_mols
+                           , reactions        = in_reacts
+                           , randGen          = rGen
+                           , events           = molEvents
+                           , currentTime      = t
+                           , currentIter      = it
+                           , maxTime          = t_max
+                           , outputBufferSize = it_max
+                           , outputFreq       = freq
+                           , outputRequest    = outputVars
+                           , outputCache      = output
+                           , variables        = theVars
                            }) ->
 
 

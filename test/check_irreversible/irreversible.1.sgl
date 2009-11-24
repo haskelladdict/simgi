@@ -2,7 +2,7 @@
 def parameters
   time       = 1.0
   systemVol  = 1.25e-19 
-  outputIter = 50000 
+  outputBuffer = 50000 
   outputFreq = 100
   outputFile = "irreversible.1.dat"
 end

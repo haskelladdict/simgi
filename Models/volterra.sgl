@@ -6,11 +6,11 @@
 ------------------------------------------------------}
 
 def parameters
-  time       = 50.0
-  outputIter = 50000
-  outputFreq = 200
-  systemVol  = nil  -- interpret rates as propensities
-  outputFile = "volterra_output.dat"
+  time         = 50.0
+  outputBuffer = 50000
+  outputFreq   = 200
+  systemVol    = nil  -- interpret rates as propensities
+  outputFile   = "volterra_output.dat"
 end
 
 def molecules

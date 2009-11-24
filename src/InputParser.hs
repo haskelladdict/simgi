@@ -131,23 +131,64 @@ parse_events = Event <$> (parse_trigger) <*> (reservedOp "=>" *> parse_actions)
 
 
 -- | parser for an event trigger
-parse_trigger :: CharParser ModelState [EventTrigger]
+parse_trigger :: CharParser ModelState 
+                 ([EventTriggerPrimitive], [EventTriggerCombinator])
 parse_trigger = braces parse_trigger_expressions
              <?> "event trigger block"
 
 
+
 -- | parse a list of trigger expressions
-parse_trigger_expressions :: CharParser ModelState [EventTrigger]
-parse_trigger_expressions = parse_single_trigger_expression `sepEndBy` semi 
-                       <?> "event trigger"
+parse_trigger_expressions :: CharParser ModelState 
+                             ([EventTriggerPrimitive], [EventTriggerCombinator])
+parse_trigger_expressions = combine_it <$> parse_single_trigger_expression 
+                            <*> (many parse_boolean_trigger_expression)
+                         <?> "event trigger"
+  
+  where
+    combine_it e = foldr (\(x,y) (u,v) -> (x:u,y:v) ) ([e],[])
+
 
 
 -- | parse a single trigger expression
-parse_single_trigger_expression :: CharParser ModelState EventTrigger
+parse_single_trigger_expression :: CharParser ModelState EventTriggerPrimitive
 parse_single_trigger_expression = 
-  EventTrigger <$> parse_infix_to_rpn <*> parse_relational
-               <*> parse_infix_to_rpn
-                        <?> "single event trigger expression"
+  EventTriggerPrimitive <$> parse_infix_to_rpn <*> parse_relational
+                        <*> parse_infix_to_rpn
+                               <?> "single event trigger expression"
+
+
+
+-- | parse a single trigger expression prefixed with a && or ||
+parse_boolean_trigger_expression :: CharParser ModelState 
+                                    (EventTriggerPrimitive, EventTriggerCombinator)
+parse_boolean_trigger_expression = 
+  tuple_it <$> parse_boolean_combinator <*> parse_single_trigger_expression
+                                <?> "boolean trigger expression"
+
+  where
+    tuple_it a b = (b,a)
+
+
+
+-- | parse a boolean combinator (&& or ||)
+parse_boolean_combinator :: CharParser ModelState EventTriggerCombinator
+parse_boolean_combinator = try parse_AND <|> parse_OR
+                        <?> "boolean combinator"
+ 
+
+
+-- | parse an && combinator
+parse_AND :: CharParser ModelState EventTriggerCombinator
+parse_AND = symbol "&&" *> (pure AndCombinator)
+          <?> "&&"
+  
+
+
+-- | parse an || combinator
+parse_OR :: CharParser ModelState EventTriggerCombinator
+parse_OR = symbol "||" *> (pure OrCombinator)
+        <?> "||"
 
 
 

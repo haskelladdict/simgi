@@ -168,6 +168,26 @@ handle_single_event evt symbols t =
 
 
 -- | compute the value of a trigger
+compute_trigger :: SymbolTable -> Double 
+                -> ([EventTriggerPrimitive],[EventTriggerCombinator]) -> Bool
+compute_trigger symbols t ([],_) = False -- this is should never happen
+compute_trigger symbols t ((x:xs),combs) = compute_trigger_h (eval_trigger x) xs combs
+
+  where
+    compute_trigger_h acc []     _      = acc
+    compute_trigger_h acc _      []     = acc
+    compute_trigger_h acc (y:ys) (c:cs) = 
+      case c of
+        AndCombinator -> compute_trigger_h (acc && (eval_trigger y)) ys cs
+        OrCombinator  -> compute_trigger_h (acc || (eval_trigger y)) ys cs
+                                          
+    eval_trigger x = (trigRelation x) (leftTrigger x) (rightTrigger x)
+    leftTrigger    = rpn_compute symbols t . trigLeftExpr 
+    rightTrigger   = rpn_compute symbols t . trigRightExpr
+
+
+{-
+-- | compute the value of a trigger
 compute_trigger :: SymbolTable -> Double -> [EventTrigger] -> Bool
 compute_trigger symbols t = foldr (\val acc -> (acc && eval_trigger val)) True
 
@@ -175,7 +195,7 @@ compute_trigger symbols t = foldr (\val acc -> (acc && eval_trigger val)) True
     eval_trigger x = (trigRelation x) (leftTrigger x) (rightTrigger x)
     leftTrigger    = rpn_compute symbols t . trigLeftExpr 
     rightTrigger   = rpn_compute symbols t . trigRightExpr
-
+-}
 
 
 -- | handle all actions associated with a user event

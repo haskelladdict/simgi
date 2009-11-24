@@ -101,7 +101,7 @@ extract_variable_names_from_events theEvents =
     (extract_variable_names $ triggerExps theEvents ++ actionExps theEvents)
 
   where
-    allTriggers = concat . foldr ((:) . evtTrigger) []
+    allTriggers = concat . foldr ((:) . fst . evtTrigger) []
     triggerExps = foldr (\x acc -> 
                     ((Function $ trigLeftExpr x):(Function $ trigRightExpr x):acc)) 
                     [] . allTriggers

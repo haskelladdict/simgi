@@ -22,7 +22,8 @@
 module GenericModel ( defaultRateList
                     , Event(..)
                     , EventAction(..)
-                    , EventTrigger(..)
+                    , EventTriggerCombinator(..)
+                    , EventTriggerPrimitive(..)
                     , GillespieState
                     , initialModelState
                     , MathExpr(..)
@@ -188,12 +189,15 @@ data EventAction = EventAction { evtName   :: String
 
 -- | data type describing an expression that triggers a 
 -- user event
-data EventTrigger = EventTrigger 
+data EventTriggerPrimitive = EventTriggerPrimitive 
   { trigLeftExpr  :: RpnStack
   , trigRelation  :: Double -> Double -> Bool
   , trigRightExpr :: RpnStack
   }
 
+
+-- | combinators that can be used to combine EventTriggerPrimitives
+data EventTriggerCombinator = AndCombinator | OrCombinator
 
 
 -- | data type keeping track of possible events occuring during
@@ -210,7 +214,7 @@ data EventTrigger = EventTrigger
 --
 --             changing the value of mol/var by <numerical expression>
 --
-data Event = Event { evtTrigger :: [EventTrigger]
+data Event = Event { evtTrigger :: ([EventTriggerPrimitive], [EventTriggerCombinator])
                    , evtActions :: [EventAction]
                    }
 

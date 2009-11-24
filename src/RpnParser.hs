@@ -159,7 +159,7 @@ parse_single_number = push <$> (parse_number)
 -- | parse a number, can be used with 'many' and other parser
 -- combinators; integers are automatically promoted to double
 parse_number :: CharParser ModelState Double
-parse_number = converter <$> parse_sign <*> naturalOrFloat -- >>= \x -> trace (show x) (return x)
+parse_number = converter <$> parse_sign <*> naturalOrFloat 
             <?> "signed integer or double"
   where 
     converter sign val = case val of

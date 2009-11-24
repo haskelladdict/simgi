@@ -43,8 +43,6 @@ import ExtraFunctions
 import GenericModel
 import RpnCalc
 
-import Debug.Trace
-
 
 -- | main simulation driver
 -- the simulator either stops when
@@ -63,9 +61,9 @@ gillespie_driver handle simTime dmpIter state =
     >> (write_data handle reversedOutput)
 
     -- next iteration if we're not at the end
-    >> if curTime >= simTime
-         then trace (show simTime ++ "  " ++ show curTime) return ()
-         else gillespie_driver handle simTime dmpIter newState
+    >> if curTime < simTime
+         then gillespie_driver handle simTime dmpIter newState
+         else return ()
 
 
 
@@ -170,7 +168,7 @@ handle_single_event evt symbols t =
 -- | compute the value of a trigger
 compute_trigger :: SymbolTable -> Double 
                 -> ([EventTriggerPrimitive],[EventTriggerCombinator]) -> Bool
-compute_trigger symbols t ([],_) = False -- this is should never happen
+compute_trigger _       _ ([],_) = False -- this is should never happen
 compute_trigger symbols t ((x:xs),combs) = compute_trigger_h (eval_trigger x) xs combs
 
   where
@@ -183,7 +181,7 @@ compute_trigger symbols t ((x:xs),combs) = compute_trigger_h (eval_trigger x) xs
         OrCombinator  -> compute_trigger_h (acc || (eval_trigger y)) ys cs
 
                                           
-    eval_trigger x = (trigRelation x) (leftTrigger x) (rightTrigger x)
+    eval_trigger e = (trigRelation e) (leftTrigger e) (rightTrigger e)
     leftTrigger    = rpn_compute symbols t . trigLeftExpr 
     rightTrigger   = rpn_compute symbols t . trigRightExpr
 
@@ -257,8 +255,8 @@ generate_output afreq it t symTable outVars outlist
 -- symbol table, grabs the current values associated with the variables,
 -- and returns them as a list
 grab_output_data :: [String] -> Double -> SymbolTable -> [Double]
-grab_output_data vars time symbols = 
-  foldr (\x acc -> (get_val_from_symbolTable x time symbols):acc) [] vars
+grab_output_data vars aTime symbols = 
+  foldr (\x acc -> (get_val_from_symbolTable x aTime symbols):acc) [] vars
                                 
 
 

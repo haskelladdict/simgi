@@ -68,10 +68,10 @@ rpn_compute symbols theTime (RpnStack xs)       = num
 -- | retrieve the value of a given symbol (either variable or molecule count) from
 -- the symbol table 
 get_val_from_symbolTable :: String -> Double -> SymbolTable -> Double
-get_val_from_symbolTable var time symbols =
+get_val_from_symbolTable var aTime symbols =
   
   case M.lookup var (molSymbols symbols) of
     Just value -> fromIntegral value
     Nothing    -> case (M.!) (varSymbols symbols) var of
                     Constant c -> c
-                    Function s -> rpn_compute symbols time s
+                    Function s -> rpn_compute symbols aTime s

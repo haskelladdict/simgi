@@ -19,7 +19,7 @@ Contents
 5) `Simgi Model Generation Language (SGL)`_
 6) `Example Input Files`_
 7) Bugs_
-8) References_
+
 
 Introduction
 ------------
@@ -88,8 +88,8 @@ A SGL file consists of zero or more descriptor blocks of the form
 
   end
 
-The formatting of the input files is very flexible (but see [3]_). In
-particular, neither newlines [4]_ nor extraneous whitespace matter. 
+The formatting of the input files is very flexible (but see [2]_). In
+particular, neither newlines [3]_ nor extraneous whitespace matter. 
 Hence, the above SDL block could also be written on a single line. 
 However, it is strongly recommended to stick to a consistent and 
 "visually simple" layout to aid in "comprehending" the underlying
@@ -107,16 +107,17 @@ the Haskell language specs
   token. Everything within a comment block is ignored by the parser 
   and block comments can be nested.
 
-An important concept inside SGL is the one of an *expression 
-statement*. These are enclosed in curly braces and can contain
+An important concept inside SGL is the one of an ``expression 
+statement``. These are enclosed in curly braces and can contain
 any mathematical expression involving doubles, the simulation time 
-(via the keyword TIME), as well as the values of any variable or 
+(via the keyword ``TIME``), as well as the values of any variable or 
 molecule count. The values of time, molecule counts and variables
 are evaluated at runtime and represent the current values during
-each iteration of the simulation.
-Presently, the following mathematical functions are supported: 
-``sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, 
-cosh, tanh, asinh, acosh, atanh, erf, ergc, abs``.
+each iteration of the simulation. Expressions statements can contain any 
+arithmetic expression involving the standard operators "+", "-", "*", "/", "^" 
+(exponentiation), and the mathematical functions ``sqrt, exp, log, log2, log10, sin, 
+cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, 
+erf, erfc, abs``.
 
 Below is a list of all SGL blocks available for describing simulations.
 Presently, the order of blocks matters and should be exactly the same
@@ -127,16 +128,18 @@ that all non-optional blocks are required.
 Currently, the SGL specs define the following block types with their 
 respective block commands and block content:
 
-**parameter block:** *<block name> = parameters*
+
+
+**parameter block:** ``<block name>`` = *parameters* 
 
   The purpose of the parameter block is to describe the global 
   simulation parameters. The following parameters are currently
   supported:
 
-  *time = <double>*
+  *time* = ``Double``
     Maximum simulation time in seconds. Default is 0.0 s.
 
-  *outputBuffer = <Integer>*
+  *outputBuffer* = ``Integer``
     Output will be kept in memory and written to the output file and 
     stdout every *outputBuffer* iterations. Larger values should 
     result in faster simulations but require more system memory. 
@@ -146,18 +149,18 @@ respective block commands and block content:
     the output file, not how much is being accumulated during a 
     simulation (see outputFreq parameter).
 
-  *outputFreq = <Integer>*
+  *outputFreq* = ``Integer``
     Frequency with which output is generated and written to the
     output file. Default is 1000.
 
-  *systemVol = <double>*
+  *systemVol* = ``Double``
     Volume of the simulation system in liters. This is needed to 
     properly compute the reaction rates in molar units. If rates 
     should rather be interpreted as reaction propensities (like 
     in [1]_) please set *systemVol = nil*. Default is a system
     volume of 1.0 liter.
 
-  *outputFile = <quoted string>*:
+  *outputFile* = ``Quoted String``
     Name of the output file. This is the only required parameter 
     in the parameter section. If not given, the simulation will 
     terminate.
@@ -165,19 +168,19 @@ respective block commands and block content:
 
 
 
-**variable block:** *<block name> = variables*
+**variable block:** ``<block name>`` = *variables*
 
   This block consist of a list of pairs of the form ::
 
-     <String> = variable expression
+     String = <variable expression>
 
-  where ``<String>`` is the variable name, and ``variable expression``
-  is either a *Double* or an *expression statement* as defined above.
+  where ``String`` is the variable name, and ``<variable expression>``
+  is either a ``Double`` or an ``expression statement`` as defined above.
  
 
 
 
-**molecule block:** *<block name> = molecules*
+**molecule block:** ``<block name>`` = *molecules*
 
   This block consist of a list of pairs of the form ::
 
@@ -194,30 +197,30 @@ respective block commands and block content:
     end
 
   **NOTE**: Please do not use any of the predefined mathematical
-  functions or internal variables (currently only TIME) as 
+  functions or internal variables (currently only ``TIME``) as 
   molecule names since this will lead to undefined behaviour.
 
 
 
 
-**reaction block**: *<block name> = reactions*
+**reaction block**: ``<block name>`` = *reactions*
 
   This block describes the reactions between molecules defined in 
   the molecule block. Reactions are specified via ::
 
-     reactants -> product  | rate expression |
+     <reactants> -> <product>  | <rate expression> |
 
-  Here, ``reactants`` and ``products`` are of the form ::
+  Here, ``<reactants>`` and ``<products>`` are of the form ::
 
-     <Integer> <String> + <Integer> <String> + .....
+     Integer String + Integer String + .....
 
-  In this expression, ``<String>`` is a molecule name 
-  as defined in the molecule block and ``<Integer>`` an optional 
-  integer specifying the stoichiometry. If ``<Integer>`` is not 
+  In this expression, ``String`` is a molecule name 
+  as defined in the molecule block and ``Integer`` an optional 
+  integer specifying the stoichiometry. If ``Integer`` is not 
   explicitly given, it is assumed to be 1.
 
-  The ``rate expression`` can either be a fixed value of type 
-  *Double* or an *expression statement* as defined above.
+  The ``<rate expression>`` can either be a fixed value of type 
+  ``Double`` or an ``expression statement`` as defined above.
   
   Below is an example reaction block for the two molecules ``A`` and 
   ``B`` defined above::
@@ -241,11 +244,11 @@ respective block commands and block content:
   expressions should therefore be avoided if possible.
 
   
-**event block**: *<block name> = events*
+**event block**: ``<block name>`` = *events*
 
   An event block allows one to specify events which will occur during 
-  the simulation. Each event consists of a *trigger expression* and 
-  an associated set of *action exprssions*. 
+  the simulation. Each event consists of a ``<trigger expression>`` and 
+  an associated set of ``<action expressions>``. 
   Events are specified via ::
 
      { <trigger expression> } => { <action expression> }
@@ -256,16 +259,16 @@ respective block commands and block content:
 
   with ``<trigger primitive>`` defined by ::
 
-     <expression statement> <relational operator> <expression statement>
+     expression statement relational operator expression statement
 
-  Each ``<trigger primitive>`` contains two *expression statements* 
-  as defined above and a ``<relational operator>`` which can be
+  Each ``<trigger primitive>`` contains two ``expression statements``
+  as defined above and a ``relational operator`` which can be
   any of ``>=``, ``<=``, ``==``, ``>``, and ``<``. Hence, each
-  ``<trigger primitive>`` evaluates to either *true* or *false*.
+  ``<trigger primitive>`` evaluates to either ``true`` or ``false``.
 
   Several ``<trigger primitives>`` can be chained together via the 
   ``<boolean operators>`` ``&&`` and ``||`` to yield a final boolean
-  value of *true* or *false*.
+  value of ``true`` or ``false``.
 
   If the ``<trigger expression>`` evaluates to true during an
   iteration, the associated ``<action expressions>`` is executed 
@@ -274,18 +277,18 @@ respective block commands and block content:
   ``<action expression>`` consists of a semi-colon separated list of  
   assignments ::
 
-  <String> = <expression> [; <String> = <expression>]
+    String = <assignment expression> [; String = <assignment expression>]
 
  
-  where ``<String>`` is a molecule or variable name and 
-  ``<expression>`` either a *Double* or an *expression statement*.
+  where ``String`` is a molecule or variable name and 
+  ``<expression>`` either a ``Double`` or an ``expression statement``.
 
   **NOTE**: Since molecule counts are integer values assignments
   to molecule counts in ``<action expression>`` will be converted
-  to an integer value via *floor*.
+  to an integer value via ``floor``.
 
 
-**output block**: *<block name> = output*
+**output block**: ``<block name>`` = *output*
 
   This block consists of a simple list of variable and molecule
   names that will be streamed to the output file in the same order::
@@ -313,15 +316,10 @@ Please report all bugs and feature requests to
 <haskelladdict at users dot sourceforge dot net>. 
 
 
-References
-----------
-
 .. [1] Daniel T. Gillespie (1977). "Exact Stochastic Simulation of Coupled Chemical Reactions". The Journal of Physical Chemistry 81 (25): 2340-2361
 
-.. [2] http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html
+.. [2] Since **simgi** currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.
 
-.. [3] Since **simgi** currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.
+.. [3] An exception to this rule are line comments starting with ``--`` which ingnore everything until the next newline.
 
-.. [4] An exception to this rule are line comments starting with ``--`` which ingnore everything until the next newline.
 
-.. [5] Rate expressions can contain any arithmetic expression involving the standard operators "+", "-", "*", "/", "^" (exponentiation), and the mathematical functions ``sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, erf, erfc, abs``.

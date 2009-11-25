@@ -329,7 +329,6 @@ ul.auto-toc {
 <li><a class="reference internal" href="#simgi-model-generation-language-sgl">Simgi Model Generation Language (SGL)</a></li>
 <li><a class="reference internal" href="#example-input-files">Example Input Files</a></li>
 <li><a class="reference internal" href="#bugs">Bugs</a></li>
-<li><a class="reference internal" href="#references">References</a></li>
 </ol>
 </div>
 <div class="section" id="introduction">
@@ -386,8 +385,8 @@ def &lt;block name&gt;
 
 end
 </pre>
-<p>The formatting of the input files is very flexible (but see <a class="footnote-reference" href="#id7" id="id2">[3]</a>). In
-particular, neither newlines <a class="footnote-reference" href="#id8" id="id3">[4]</a> nor extraneous whitespace matter.
+<p>The formatting of the input files is very flexible (but see <a class="footnote-reference" href="#id6" id="id2">[2]</a>). In
+particular, neither newlines <a class="footnote-reference" href="#id7" id="id3">[3]</a> nor extraneous whitespace matter.
 Hence, the above SDL block could also be written on a single line.
 However, it is strongly recommended to stick to a consistent and
 &quot;visually simple&quot; layout to aid in &quot;comprehending&quot; the underlying
@@ -404,16 +403,17 @@ newlines in order to be parsed correctly.</li>
 token. Everything within a comment block is ignored by the parser
 and block comments can be nested.</li>
 </ul>
-<p>An important concept inside SGL is the one of an <em>expression
-statement</em>. These are enclosed in curly braces and can contain
+<p>An important concept inside SGL is the one of an <tt class="docutils literal">expression
+statement</tt>. These are enclosed in curly braces and can contain
 any mathematical expression involving doubles, the simulation time
-(via the keyword TIME), as well as the values of any variable or
+(via the keyword <tt class="docutils literal">TIME</tt>), as well as the values of any variable or
 molecule count. The values of time, molecule counts and variables
 are evaluated at runtime and represent the current values during
-each iteration of the simulation.
-Presently, the following mathematical functions are supported:
-<tt class="docutils literal">sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh,
-cosh, tanh, asinh, acosh, atanh, erf, ergc, abs</tt>.</p>
+each iteration of the simulation. Expressions statements can contain any
+arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot;
+(exponentiation), and the mathematical functions <tt class="docutils literal">sqrt, exp, log, log2, log10, sin,
+cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh,
+erf, erfc, abs</tt>.</p>
 <p>Below is a list of all SGL blocks available for describing simulations.
 Presently, the order of blocks matters and should be exactly the same
 in which they are described below. Several SGL blocks are
@@ -421,15 +421,15 @@ optional and are indicated as such below. This implies in particular
 that all non-optional blocks are required.</p>
 <p>Currently, the SGL specs define the following block types with their
 respective block commands and block content:</p>
-<p><strong>parameter block:</strong> <em>&lt;block name&gt; = parameters</em></p>
+<p><strong>parameter block:</strong> <tt class="docutils literal">&lt;block name&gt;</tt> = <em>parameters</em></p>
 <blockquote>
 <p>The purpose of the parameter block is to describe the global
 simulation parameters. The following parameters are currently
 supported:</p>
 <dl class="docutils">
-<dt><em>time = &lt;double&gt;</em></dt>
+<dt><em>time</em> = <tt class="docutils literal">Double</tt></dt>
 <dd>Maximum simulation time in seconds. Default is 0.0 s.</dd>
-<dt><em>outputBuffer = &lt;Integer&gt;</em></dt>
+<dt><em>outputBuffer</em> = <tt class="docutils literal">Integer</tt></dt>
 <dd><p class="first">Output will be kept in memory and written to the output file and
 stdout every <em>outputBuffer</em> iterations. Larger values should
 result in faster simulations but require more system memory.
@@ -438,31 +438,31 @@ Default is to write output every 10000 iterations.</p>
 the output file, not how much is being accumulated during a
 simulation (see outputFreq parameter).</p>
 </dd>
-<dt><em>outputFreq = &lt;Integer&gt;</em></dt>
+<dt><em>outputFreq</em> = <tt class="docutils literal">Integer</tt></dt>
 <dd>Frequency with which output is generated and written to the
 output file. Default is 1000.</dd>
-<dt><em>systemVol = &lt;double&gt;</em></dt>
+<dt><em>systemVol</em> = <tt class="docutils literal">Double</tt></dt>
 <dd>Volume of the simulation system in liters. This is needed to
 properly compute the reaction rates in molar units. If rates
 should rather be interpreted as reaction propensities (like
 in <a class="footnote-reference" href="#id5" id="id4">[1]</a>) please set <em>systemVol = nil</em>. Default is a system
 volume of 1.0 liter.</dd>
-<dt><em>outputFile = &lt;quoted string&gt;</em>:</dt>
+<dt><em>outputFile</em> = <tt class="docutils literal">Quoted String</tt></dt>
 <dd>Name of the output file. This is the only required parameter
 in the parameter section. If not given, the simulation will
 terminate.</dd>
 </dl>
 </blockquote>
-<p><strong>variable block:</strong> <em>&lt;block name&gt; = variables</em></p>
+<p><strong>variable block:</strong> <tt class="docutils literal">&lt;block name&gt;</tt> = <em>variables</em></p>
 <blockquote>
 <p>This block consist of a list of pairs of the form</p>
 <pre class="literal-block">
-&lt;String&gt; = variable expression
+String = &lt;variable expression&gt;
 </pre>
-<p>where <tt class="docutils literal">&lt;String&gt;</tt> is the variable name, and <tt class="docutils literal">variable expression</tt>
-is either a <em>Double</em> or an <em>expression statement</em> as defined above.</p>
+<p>where <tt class="docutils literal">String</tt> is the variable name, and <tt class="docutils literal">&lt;variable expression&gt;</tt>
+is either a <tt class="docutils literal">Double</tt> or an <tt class="docutils literal">expression statement</tt> as defined above.</p>
 </blockquote>
-<p><strong>molecule block:</strong> <em>&lt;block name&gt; = molecules</em></p>
+<p><strong>molecule block:</strong> <tt class="docutils literal">&lt;block name&gt;</tt> = <em>molecules</em></p>
 <blockquote>
 <p>This block consist of a list of pairs of the form</p>
 <pre class="literal-block">
@@ -479,26 +479,26 @@ def molecules
 end
 </pre>
 <p><strong>NOTE</strong>: Please do not use any of the predefined mathematical
-functions or internal variables (currently only TIME) as
+functions or internal variables (currently only <tt class="docutils literal">TIME</tt>) as
 molecule names since this will lead to undefined behaviour.</p>
 </blockquote>
-<p><strong>reaction block</strong>: <em>&lt;block name&gt; = reactions</em></p>
+<p><strong>reaction block</strong>: <tt class="docutils literal">&lt;block name&gt;</tt> = <em>reactions</em></p>
 <blockquote>
 <p>This block describes the reactions between molecules defined in
 the molecule block. Reactions are specified via</p>
 <pre class="literal-block">
-reactants -&gt; product  | rate expression |
+&lt;reactants&gt; -&gt; &lt;product&gt;  | &lt;rate expression&gt; |
 </pre>
-<p>Here, <tt class="docutils literal">reactants</tt> and <tt class="docutils literal">products</tt> are of the form</p>
+<p>Here, <tt class="docutils literal">&lt;reactants&gt;</tt> and <tt class="docutils literal">&lt;products&gt;</tt> are of the form</p>
 <pre class="literal-block">
-&lt;Integer&gt; &lt;String&gt; + &lt;Integer&gt; &lt;String&gt; + .....
+Integer String + Integer String + .....
 </pre>
-<p>In this expression, <tt class="docutils literal">&lt;String&gt;</tt> is a molecule name
-as defined in the molecule block and <tt class="docutils literal">&lt;Integer&gt;</tt> an optional
-integer specifying the stoichiometry. If <tt class="docutils literal">&lt;Integer&gt;</tt> is not
+<p>In this expression, <tt class="docutils literal">String</tt> is a molecule name
+as defined in the molecule block and <tt class="docutils literal">Integer</tt> an optional
+integer specifying the stoichiometry. If <tt class="docutils literal">Integer</tt> is not
 explicitly given, it is assumed to be 1.</p>
-<p>The <tt class="docutils literal">rate expression</tt> can either be a fixed value of type
-<em>Double</em> or an <em>expression statement</em> as defined above.</p>
+<p>The <tt class="docutils literal">&lt;rate expression&gt;</tt> can either be a fixed value of type
+<tt class="docutils literal">Double</tt> or an <tt class="docutils literal">expression statement</tt> as defined above.</p>
 <p>Below is an example reaction block for the two molecules <tt class="docutils literal">A</tt> and
 <tt class="docutils literal">B</tt> defined above:</p>
 <pre class="literal-block">
@@ -519,11 +519,11 @@ procedure is fairly efficient, there is some numerical overhead
 incurred at each iteration and the use of complicated rate
 expressions should therefore be avoided if possible.</p>
 </blockquote>
-<p><strong>event block</strong>: <em>&lt;block name&gt; = events</em></p>
+<p><strong>event block</strong>: <tt class="docutils literal">&lt;block name&gt;</tt> = <em>events</em></p>
 <blockquote>
 <p>An event block allows one to specify events which will occur during
-the simulation. Each event consists of a <em>trigger expression</em> and
-an associated set of <em>action exprssions</em>.
+the simulation. Each event consists of a <tt class="docutils literal">&lt;trigger expression&gt;</tt> and
+an associated set of <tt class="docutils literal">&lt;action expressions&gt;</tt>.
 Events are specified via</p>
 <pre class="literal-block">
 { &lt;trigger expression&gt; } =&gt; { &lt;action expression&gt; }
@@ -534,30 +534,30 @@ Events are specified via</p>
 </pre>
 <p>with <tt class="docutils literal">&lt;trigger primitive&gt;</tt> defined by</p>
 <pre class="literal-block">
-&lt;expression statement&gt; &lt;relational operator&gt; &lt;expression statement&gt;
+expression statement relational operator expression statement
 </pre>
-<p>Each <tt class="docutils literal">&lt;trigger primitive&gt;</tt> contains two <em>expression statements</em>
-as defined above and a <tt class="docutils literal">&lt;relational operator&gt;</tt> which can be
+<p>Each <tt class="docutils literal">&lt;trigger primitive&gt;</tt> contains two <tt class="docutils literal">expression statements</tt>
+as defined above and a <tt class="docutils literal">relational operator</tt> which can be
 any of <tt class="docutils literal">&gt;=</tt>, <tt class="docutils literal">&lt;=</tt>, <tt class="docutils literal">==</tt>, <tt class="docutils literal">&gt;</tt>, and <tt class="docutils literal">&lt;</tt>. Hence, each
-<tt class="docutils literal">&lt;trigger primitive&gt;</tt> evaluates to either <em>true</em> or <em>false</em>.</p>
+<tt class="docutils literal">&lt;trigger primitive&gt;</tt> evaluates to either <tt class="docutils literal">true</tt> or <tt class="docutils literal">false</tt>.</p>
 <p>Several <tt class="docutils literal">&lt;trigger primitives&gt;</tt> can be chained together via the
 <tt class="docutils literal">&lt;boolean operators&gt;</tt> <tt class="docutils literal">&amp;&amp;</tt> and <tt class="docutils literal">||</tt> to yield a final boolean
-value of <em>true</em> or <em>false</em>.</p>
+value of <tt class="docutils literal">true</tt> or <tt class="docutils literal">false</tt>.</p>
 <p>If the <tt class="docutils literal">&lt;trigger expression&gt;</tt> evaluates to true during an
 iteration, the associated <tt class="docutils literal">&lt;action expressions&gt;</tt> is executed
 during the same timestep.</p>
 <p><tt class="docutils literal">&lt;action expression&gt;</tt> consists of a semi-colon separated list of
 assignments</p>
 <pre class="literal-block">
-&lt;String&gt; = &lt;expression&gt; [; &lt;String&gt; = &lt;expression&gt;]
+String = &lt;assignment expression&gt; [; String = &lt;assignment expression&gt;]
 </pre>
-<p>where <tt class="docutils literal">&lt;String&gt;</tt> is a molecule or variable name and
-<tt class="docutils literal">&lt;expression&gt;</tt> either a <em>Double</em> or an <em>expression statement</em>.</p>
+<p>where <tt class="docutils literal">String</tt> is a molecule or variable name and
+<tt class="docutils literal">&lt;expression&gt;</tt> either a <tt class="docutils literal">Double</tt> or an <tt class="docutils literal">expression statement</tt>.</p>
 <p><strong>NOTE</strong>: Since molecule counts are integer values assignments
 to molecule counts in <tt class="docutils literal">&lt;action expression&gt;</tt> will be converted
-to an integer value via <em>floor</em>.</p>
+to an integer value via <tt class="docutils literal">floor</tt>.</p>
 </blockquote>
-<p><strong>output block</strong>: <em>&lt;block name&gt; = output</em></p>
+<p><strong>output block</strong>: <tt class="docutils literal">&lt;block name&gt;</tt> = <em>output</em></p>
 <blockquote>
 <p>This block consists of a simple list of variable and molecule
 names that will be streamed to the output file in the same order:</p>
@@ -580,9 +580,6 @@ names that will be streamed to the output file in the same order:</p>
 <h1>Bugs</h1>
 <p>Please report all bugs and feature requests to
 &lt;haskelladdict at users dot sourceforge dot net&gt;.</p>
-</div>
-<div class="section" id="references">
-<h1>References</h1>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
@@ -592,25 +589,13 @@ names that will be streamed to the output file in the same order:</p>
 <table class="docutils footnote" frame="void" id="id6" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[2]</td><td><a class="reference external" href="http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html">http://hackage.haskell.org/packages/archive/random/1.0.0.1/doc/html/System-Random#globalrng.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Since <strong>simgi</strong> currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.</td></tr>
 </tbody>
 </table>
 <table class="docutils footnote" frame="void" id="id7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[3]</a></td><td>Since <strong>simgi</strong> currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id8" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[4]</a></td><td>An exception to this rule are line comments starting with <tt class="docutils literal"><span class="pre">--</span></tt> which ingnore everything until the next newline.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id9" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[5]</td><td>Rate expressions can contain any arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot; (exponentiation), and the mathematical functions <tt class="docutils literal">sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, erf, erfc, abs</tt>.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>An exception to this rule are line comments starting with <tt class="docutils literal"><span class="pre">--</span></tt> which ingnore everything until the next newline.</td></tr>
 </tbody>
 </table>
 </div>

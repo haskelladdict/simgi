@@ -35,10 +35,11 @@ Status
 ------
 
 The 0.2 release of **simgi** provides a fully functional simulator 
-which has been tested on several model systems some of which are fairly
-large. The engine itself is not yet fully optimized for speed. Furthermore,
-version 0.1's random number generator (RandomGen) has been replaced which a much 
-more powerful and faster implementation of a 64bit Mersenne Twister generator.
+which has been tested on several model systems some of which were
+fairly large. The engine itself is not yet fully optimized for speed. 
+Furthermore, version 0.1's random number generator (RandomGen) has 
+been replaced which a much more powerful and faster implementation 
+of a 64bit Mersenne Twister.
 
 
 Download
@@ -74,7 +75,8 @@ Simgi Model Generation Language (SGL)
 
 simgi simulations are described via `Simgi Model Generation Language 
 (SGL)`_. The corresponding simulation files typically have an *.sgl* 
-extension, but this is not enforced by the **simgi** simulation engine. 
+extension, but this is not enforced by the **simgi** simulation 
+engine. 
 
 A SGL file consists of zero or more descriptor blocks of the form
 
@@ -86,12 +88,13 @@ A SGL file consists of zero or more descriptor blocks of the form
 
   end
 
-The (but see [3]_) formatting of the input files is very flexible. In
+The formatting of the input files is very flexible (but see [3]_). In
 particular, neither newlines [4]_ nor extraneous whitespace matter. 
 Hence, the above SDL block could also be written on a single line. 
 However, it is strongly recommended to stick to a consistent and 
 "visually simple" layout to aid in "comprehending" the underlying
-model.
+model. Also, it is worth to point out that **simgi**'s parser is 
+case sensitive.
 
 **Comments** can be added to the SGL file and are parsed according to 
 the Haskell language specs
@@ -104,16 +107,25 @@ the Haskell language specs
   token. Everything within a comment block is ignored by the parser 
   and block comments can be nested.
 
+An important concept inside SGL is the one of an *expression 
+statement*. These are enclosed in curly braces and can contain
+any mathematical expression involving doubles, the simulation time 
+(via the keyword TIME), as well as the values of any variable or 
+molecule count. The values of time, molecule counts and variables
+are evaluated at runtime and represent the current values during
+each iteration of the simulation.
+Presently, the following mathematical functions are supported: 
+``sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, sinh, 
+cosh, tanh, asinh, acosh, atanh, erf, ergc, abs``.
 
-Below we list all SGL blocks available for describing simulations.
-Presently, the order of blocks matters and should be exactly in the 
-same order in which they are described below. Several SGL blocks are 
-optional, can be left out, and are indicated as such below. This 
-implies that all non-optional blocks are required.
+Below is a list of all SGL blocks available for describing simulations.
+Presently, the order of blocks matters and should be exactly the same
+in which they are described below. Several SGL blocks are 
+optional and are indicated as such below. This implies in particular
+that all non-optional blocks are required.
 
 Currently, the SGL specs define the following block types with their 
 respective block commands and block content:
-
 
 **parameter block:** *<block name> = parameters*
 
@@ -126,8 +138,8 @@ respective block commands and block content:
 
   *outputBuffer = <Integer>*
     Output will be kept in memory and written to the output file and 
-    stdout every *outputBuffer* iterations. Larger values should result 
-    in faster simulations but require more system memory. 
+    stdout every *outputBuffer* iterations. Larger values should 
+    result in faster simulations but require more system memory. 
     Default is to write output every 10000 iterations.
 
     Note: *outputBuffer* only affects how often output is written to 
@@ -152,11 +164,24 @@ respective block commands and block content:
 
 
 
+
+**variable block:** *<block name> = variables*
+
+  This block consist of a list of pairs of the form ::
+
+     <String> = variable expression
+
+  where ``<String>`` is the variable name, and ``variable expression``
+  is either a *Double* or an *expression statement* as defined above.
+ 
+
+
+
 **molecule block:** *<block name> = molecules*
 
   This block consist of a list of pairs of the form ::
 
-     <String> <Integer>
+     <String> = <Integer>
 
   giving the name of each molecule and the number of molecules
   present initially. For example, the following molecule definition 
@@ -164,9 +189,15 @@ respective block commands and block content:
   100 and 200, respectively ::
 
     def molecules
-      A 100
-      B 200
+      A = 100
+      B = 200
     end
+
+  **NOTE**: Please do not use any of the predefined mathematical
+  functions or internal variables (currently only TIME) as 
+  molecule names since this will lead to undefined behaviour.
+
+
 
 
 **reaction block**: *<block name> = reactions*
@@ -174,36 +205,26 @@ respective block commands and block content:
   This block describes the reactions between molecules defined in 
   the molecule block. Reactions are specified via ::
 
-     reactants -> product { rate expression }
+     reactants -> product  | rate expression |
 
   Here, ``reactants`` and ``products`` are of the form ::
 
      <Integer> <String> + <Integer> <String> + .....
 
-  In this expression, ``<String>`` is the reactant or product name 
+  In this expression, ``<String>`` is a molecule name 
   as defined in the molecule block and ``<Integer>`` an optional 
   integer specifying the stoichiometry. If ``<Integer>`` is not 
   explicitly given, it is assumed to be 1.
 
-  The reaction rate can either be a fixed value of type ``<Double>`` 
-  or else an mathematical expression involving ``<Double>``, 
-  molecule names, and the current simulation time. Hence, **simgi** 
-  rate expressions can be arbitrary complex functions of the 
-  instantaneous simulation time and the instantaneous numbers of any
-  molecule in the model. The parser will interpret any string in the 
-  rate expression as a molecule name in a case sensitive fashion, 
-  a mathematical operator or function (see [5]_ for supported 
-  functions), or the special variable TIME which refers to the 
-  current simulation time. Hence, do **not** use any of the 
-  mathematical keywords as a molecule name; this leads to undefined
-  behavior.
+  The ``rate expression`` can either be a fixed value of type 
+  *Double* or an *expression statement* as defined above.
   
-  Here is an example reaction block for the two molecules ``A`` and 
+  Below is an example reaction block for the two molecules ``A`` and 
   ``B`` defined above::
 
     define reactions
-      2A + B -> A  { 10.0e-5 }
-      B      -> A  { 2.0e-5 * A * exp(-0.5*TIME) }
+      2A + B -> A  | 10.0e-5 |
+      B      -> A  | {2.0e-5 * A * exp(-0.5*TIME)} |
     end
    
   In the first reaction, 2 ``A`` molecules react with one ``B`` to 
@@ -223,18 +244,32 @@ respective block commands and block content:
 **event block**: *<block name> = events*
 
   An event block allows one to specify events which will occur during 
-  the simulation. Each event consists of a trigger and an associated
-  set of actions. Events are specified with ::
+  the simulation. Each event consists of a *trigger expression* and 
+  an associated set of *action exprssions*. 
+  Events are specified via ::
 
-     { trigger expression } => { action expression }
+     { <trigger expression> } => { <action expression> }
 
-  Here, ``trigger expression`` is of the form ::
+  Here, trigger expression`` is of the form ::
 
-     <expression> <relational operator> <expression>
+     <trigger primitive> [ <boolean operator> <trigger primitive>]
 
-  where ``<expression>`` can be any mathematical expression involving
-  numbers and instantaneous molecule counts. ``<relational operator>``
-  is any of ``>=``, ``<=``, ``==``, ``>``, and ``<``.
+  with ``<trigger primitive>`` defined by ::
+
+     <expression statement> <relational operator> <expression statement>
+
+  Each ``<trigger primitive>`` contains two *expression statements* 
+  as defined above and a ``<relational operator>`` which can be
+  any of ``>=``, ``<=``, ``==``, ``>``, and ``<``. Hence, each
+  ``<trigger primitive>`` evaluates to either *true* or *false*.
+
+  Several ``<trigger primitives>`` can be chained together via the 
+  ``<boolean operators>`` ``&&`` and ``||`` to yield a final boolean
+  value of *true* or *false*.
+
+  If the ``<trigger expression>`` evaluates to true during an
+  iteration, the associated ``<action expressions>`` is executed 
+  during the same timestep.
 
   ``<action expression>`` consists of a semi-colon separated list of  
   assignments ::
@@ -242,13 +277,22 @@ respective block commands and block content:
   <String> = <expression> [; <String> = <expression>]
 
  
-  where ``<String>`` is a molecule name and ``<expression>`` any
-  mathematical expression involving numbers and instantaneous
-  molecule counts. 
+  where ``<String>`` is a molecule or variable name and 
+  ``<expression>`` either a *Double* or an *expression statement*.
 
-  Once a trigger expression evaluates to true during a given timestep,
-  the corresponding actions are carried out that same timestep.
- 
+  **NOTE**: Since molecule counts are integer values assignments
+  to molecule counts in ``<action expression>`` will be converted
+  to an integer value via *floor*.
+
+
+**output block**: *<block name> = output*
+
+  This block consists of a simple list of variable and molecule
+  names that will be streamed to the output file in the same order::
+
+    [ name1, name2, name3, .... ]
+
+
 
 Example Input Files
 -------------------

@@ -21,11 +21,12 @@ build_pdf: $(RST_FILES)
 
 
 clean_old:
-	rm -f *.html *.pdf
+	rm -f *.html *.pdf 
 
 
 .PHONY: clean
 
 clean:
+	rm -f *.aux *.log *.html *.pdf *.tex *.out
 	
 	

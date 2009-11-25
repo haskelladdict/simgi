@@ -45,7 +45,7 @@ startup_message state = show_version
   >> (putStrLn $ "\n-------- Simulation parameters ----------")
   >> (putStrLn $ "rng seed              : " ++ (show simSeed))
   >> (putStrLn $ "max time              : " ++ (show simTime) ++ " s")
-  >> (putStrLn $ "system volume         : " ++ (show simVol) ++ " m^3")
+  >> (putStrLn $ "system volume         : " ++ finalSimVol)
   >> (putStrLn $ "data output frequency : " ++ (show simFreq))
   >> (putStrLn $ "log output frequency  : " ++ (show simLogFreq))
   >> (putStrLn $ "output filename       : " ++ simOutFile)
@@ -61,6 +61,11 @@ startup_message state = show_version
                 , outputFreq       = simFreq
                 , outfileName      = simOutFile 
                 }) = state
+
+    -- for nil volumes we want to display nil not -1.0
+    finalSimVol = if (simVol < 0) 
+                    then "nil"
+                    else (show simVol) ++ " m^3"
 
 
 -- | provide brief usage info

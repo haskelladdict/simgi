@@ -73,7 +73,7 @@ Building of **simgi** can be done either via
 Simgi Model Generation Language (SGL)
 -------------------------------------
 
-simgi simulations are described via `Simgi Model Generation Language 
+**simgi** simulations are described via `Simgi Model Generation Language 
 (SGL)`_. The corresponding simulation files typically have an *.sgl* 
 extension, but this is not enforced by the **simgi** simulation 
 engine. 
@@ -184,7 +184,7 @@ respective block commands and block content:
 
   This block consist of a list of pairs of the form ::
 
-     <String> = <Integer>
+     String = Integer
 
   giving the name of each molecule and the number of molecules
   present initially. For example, the following molecule definition 

@@ -6,7 +6,7 @@ simgi - A Stochastic Gillespie Simulator for Molecular Systems
 
 :email: haskelladdict at users dot sourceforge dot net
 
-:Version: 0.2 (11/24/2009)
+:Version: 0.2 (12/01/2009)
 
 
 Contents

@@ -25,10 +25,11 @@ Introduction
 ------------
 
 **simgi** is a fairly simple and straightforward stochastic simulator 
-based on Gillspie's [1]_ direct method. **simgi** is implemented in 
+based on Gillespie's [1]_ direct method. **simgi** is implemented in 
 pure Haskell, command line driven and comes with a flexible simulation
 description language called `Simgi Model Generation Language (SGL)`_.
-More information is available from the `project summary page <http://sourceforge.net/projects/simgi>`_.
+**simgi** uses a fast 64 bit implementation of the Mersenne Twister
+algorithm as random number source.
 
 
 Status 
@@ -36,10 +37,7 @@ Status
 
 The 0.2 release of **simgi** provides a fully functional simulator 
 which has been tested on several model systems some of which were
-fairly large. The engine itself is not yet fully optimized for speed. 
-Furthermore, version 0.1's random number generator (RandomGen) has 
-been replaced which a much more powerful and faster implementation 
-of a 64bit Mersenne Twister.
+fairly large. 
 
 
 Download
@@ -74,7 +72,7 @@ Simgi Model Generation Language (SGL)
 -------------------------------------
 
 **simgi** simulations are described via `Simgi Model Generation Language 
-(SGL)`_. The corresponding simulation files typically have an *.sgl* 
+(SGL)`_. The corresponding simulation input files typically have an *.sgl* 
 extension, but this is not enforced by the **simgi** simulation 
 engine. 
 
@@ -88,46 +86,52 @@ A SGL file consists of zero or more descriptor blocks of the form
 
   end
 
-The formatting of the input files is very flexible (but see [2]_). In
-particular, neither newlines [3]_ nor extraneous whitespace matter. 
-Hence, the above SDL block could also be written on a single line. 
+The formatting of the input files is very flexible. In
+particular, neither newlines [2]_ nor extraneous whitespace matter. 
+Hence, the above SGL block could also be written on a single line. 
 However, it is strongly recommended to stick to a consistent and 
 "visually simple" layout to aid in "comprehending" the underlying
-model. Also, it is worth to point out that **simgi**'s parser is 
+model. Also, it is important to point out that **simgi**'s parser is 
 case sensitive.
 
 **Comments** can be added to the SGL file and are parsed according to 
 the Haskell language specs
 
 - simple line comments begin with a ``--`` token and treat everything 
-  until the next newline as a comment, including valid SDL commands. 
-  Hence, SDL blocks containing line comments need to be separated by 
+  until the next newline as a comment, including valid SGL commands. 
+  Hence, SGL blocks containing line comments need to be separated by 
   newlines in order to be parsed correctly.
 - block comments begin with a ``{-`` token and end with a ``-}`` 
   token. Everything within a comment block is ignored by the parser 
   and block comments can be nested.
 
-An important concept inside SGL is the one of an ``expression 
-statement``. These are enclosed in curly braces and can contain
+**Expression Statements** are an important and useful part of SGL.
+``Expression statements`` are enclosed in curly braces and can contain
 any mathematical expression involving doubles, the simulation time 
 (via the keyword ``TIME``), as well as the values of any variable or 
 molecule count. The values of time, molecule counts and variables
-are evaluated at runtime and represent the current values during
-each iteration of the simulation. Expressions statements can contain any 
+are evaluated at run time and represent the instantaneous values at the
+time at which the expression is evaluated.
+``Expressions statements`` can contain any 
 arithmetic expression involving the standard operators "+", "-", "*", "/", "^" 
 (exponentiation), and the mathematical functions ``sqrt, exp, log, log2, log10, sin, 
 cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, 
 erf, erfc, abs``.
 
+Internally, ``expression statements`` are converted into a compute stack
+in RPN format which is evaluated at run-time. Even though this
+procedure is fairly efficient, there is some numerical overhead
+incurred at each iteration and the use of complicated rate 
+expressions should therefore be avoided if possible.
+
+
 Below is a list of all SGL blocks available for describing simulations.
 Presently, the order of blocks matters and should be exactly the same
 in which they are described below. Several SGL blocks are 
-optional and are indicated as such below. This implies in particular
-that all non-optional blocks are required.
+optional and are marked as such below. 
 
 Currently, the SGL specs define the following block types with their 
 respective block commands and block content:
-
 
 
 **parameter block:** ``<block name>`` = *parameters* 
@@ -146,12 +150,13 @@ respective block commands and block content:
     Default is to write output every 10000 iterations.
 
     Note: *outputBuffer* only affects how often output is written to 
-    the output file, not how much is being accumulated during a 
+    the output file, not how much output is actually generated during a 
     simulation (see outputFreq parameter).
 
   *outputFreq* = ``Integer``
-    Frequency with which output is generated and written to the
-    output file. Default is 1000.
+    Iteration frequency with which output is generated. Default is every 1000
+    iterations. Please note that output is written to the output file in batches of
+    *outputBuffer*.
 
   *systemVol* = ``Double``
     Volume of the simulation system in liters. This is needed to 
@@ -176,8 +181,9 @@ respective block commands and block content:
 
   where ``String`` is the variable name, and ``<variable expression>``
   is either a ``Double`` or an ``expression statement`` as defined above.
- 
-
+  Variables can be used in any other ``expression statement`` in the
+  SGL file including reaction rate definitions. Please make sure to
+  not define a variable in terms of itself to avoid infinite recursion.
 
 
 **molecule block:** ``<block name>`` = *molecules*
@@ -197,8 +203,8 @@ respective block commands and block content:
     end
 
   **NOTE**: Please do not use any of the predefined mathematical
-  functions or internal variables (currently only ``TIME``) as 
-  molecule names since this will lead to undefined behaviour.
+  functions or defined variables (including ``TIME``) as 
+  molecule names since this will lead to undefined behavior.
 
 
 
@@ -208,7 +214,7 @@ respective block commands and block content:
   This block describes the reactions between molecules defined in 
   the molecule block. Reactions are specified via ::
 
-     <reactants> -> <product>  | <rate expression> |
+     <reactants> -> <products>  | <rate expression> |
 
   Here, ``<reactants>`` and ``<products>`` are of the form ::
 
@@ -231,17 +237,12 @@ respective block commands and block content:
     end
    
   In the first reaction, 2 ``A`` molecules react with one ``B`` to 
-  yield another ``A`` at a rate of 10.0e-5 1/(Mol s). The second 
+  yield another ``A`` at a rate of 10.0e-5. The second 
   reaction describes a decay of ``B`` back to ``A`` at a rate 
   that is computed based on the instantaneous number of ``A`` 
   molecules present and which decays exponentially with simulation
   time.
 
-  Internally, rate expressions are converted into a compute stack
-  in RPN format which is evaluated at run-time. Even though this
-  procedure is fairly efficient, there is some numerical overhead
-  incurred at each iteration and the use of complicated rate 
-  expressions should therefore be avoided if possible.
 
   
 **event block**: ``<block name>`` = *events*
@@ -253,13 +254,13 @@ respective block commands and block content:
 
      { <trigger expression> } => { <action expression> }
 
-  Here, trigger expression`` is of the form ::
+  Here, ``trigger expression`` is of the form ::
 
      <trigger primitive> [ <boolean operator> <trigger primitive>]
 
   with ``<trigger primitive>`` defined by ::
 
-     expression statement relational operator expression statement
+     <expression statement> relational operator <expression statement>
 
   Each ``<trigger primitive>`` contains two ``expression statements``
   as defined above and a ``relational operator`` which can be
@@ -318,8 +319,6 @@ Please report all bugs and feature requests to
 
 .. [1] Daniel T. Gillespie (1977). "Exact Stochastic Simulation of Coupled Chemical Reactions". The Journal of Physical Chemistry 81 (25): 2340-2361
 
-.. [2] Since **simgi** currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.
-
-.. [3] An exception to this rule are line comments starting with ``--`` which ingnore everything until the next newline.
+.. [2] An exception to this rule are line comments starting with ``--`` which ingnore everything until the next newline.
 
 

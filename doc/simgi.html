@@ -334,19 +334,17 @@ ul.auto-toc {
 <div class="section" id="introduction">
 <h1>Introduction</h1>
 <p><strong>simgi</strong> is a fairly simple and straightforward stochastic simulator
-based on Gillspie's <a class="footnote-reference" href="#id5" id="id1">[1]</a> direct method. <strong>simgi</strong> is implemented in
+based on Gillespie's <a class="footnote-reference" href="#id4" id="id1">[1]</a> direct method. <strong>simgi</strong> is implemented in
 pure Haskell, command line driven and comes with a flexible simulation
 description language called <a class="reference internal" href="#simgi-model-generation-language-sgl">Simgi Model Generation Language (SGL)</a>.
-More information is available from the <a class="reference external" href="http://sourceforge.net/projects/simgi">project summary page</a>.</p>
+<strong>simgi</strong> uses a fast 64 bit implementation of the Mersenne Twister
+algorithm as random number source.</p>
 </div>
 <div class="section" id="status">
 <h1>Status</h1>
 <p>The 0.2 release of <strong>simgi</strong> provides a fully functional simulator
 which has been tested on several model systems some of which were
-fairly large. The engine itself is not yet fully optimized for speed.
-Furthermore, version 0.1's random number generator (RandomGen) has
-been replaced which a much more powerful and faster implementation
-of a 64bit Mersenne Twister.</p>
+fairly large.</p>
 </div>
 <div class="section" id="download">
 <h1>Download</h1>
@@ -374,7 +372,7 @@ of a 64bit Mersenne Twister.</p>
 <div class="section" id="simgi-model-generation-language-sgl">
 <h1>Simgi Model Generation Language (SGL)</h1>
 <p><strong>simgi</strong> simulations are described via <a class="reference internal" href="#simgi-model-generation-language-sgl">Simgi Model Generation Language
-(SGL)</a>. The corresponding simulation files typically have an <em>.sgl</em>
+(SGL)</a>. The corresponding simulation input files typically have an <em>.sgl</em>
 extension, but this is not enforced by the <strong>simgi</strong> simulation
 engine.</p>
 <p>A SGL file consists of zero or more descriptor blocks of the form</p>
@@ -385,40 +383,45 @@ def &lt;block name&gt;
 
 end
 </pre>
-<p>The formatting of the input files is very flexible (but see <a class="footnote-reference" href="#id6" id="id2">[2]</a>). In
-particular, neither newlines <a class="footnote-reference" href="#id7" id="id3">[3]</a> nor extraneous whitespace matter.
-Hence, the above SDL block could also be written on a single line.
+<p>The formatting of the input files is very flexible. In
+particular, neither newlines <a class="footnote-reference" href="#id5" id="id2">[2]</a> nor extraneous whitespace matter.
+Hence, the above SGL block could also be written on a single line.
 However, it is strongly recommended to stick to a consistent and
 &quot;visually simple&quot; layout to aid in &quot;comprehending&quot; the underlying
-model. Also, it is worth to point out that <strong>simgi</strong>'s parser is
+model. Also, it is important to point out that <strong>simgi</strong>'s parser is
 case sensitive.</p>
 <p><strong>Comments</strong> can be added to the SGL file and are parsed according to
 the Haskell language specs</p>
 <ul class="simple">
 <li>simple line comments begin with a <tt class="docutils literal"><span class="pre">--</span></tt> token and treat everything
-until the next newline as a comment, including valid SDL commands.
-Hence, SDL blocks containing line comments need to be separated by
+until the next newline as a comment, including valid SGL commands.
+Hence, SGL blocks containing line comments need to be separated by
 newlines in order to be parsed correctly.</li>
 <li>block comments begin with a <tt class="docutils literal">{-</tt> token and end with a <tt class="docutils literal"><span class="pre">-}</span></tt>
 token. Everything within a comment block is ignored by the parser
 and block comments can be nested.</li>
 </ul>
-<p>An important concept inside SGL is the one of an <tt class="docutils literal">expression
-statement</tt>. These are enclosed in curly braces and can contain
+<p><strong>Expression Statements</strong> are an important and useful part of SGL.
+<tt class="docutils literal">Expression statements</tt> are enclosed in curly braces and can contain
 any mathematical expression involving doubles, the simulation time
 (via the keyword <tt class="docutils literal">TIME</tt>), as well as the values of any variable or
 molecule count. The values of time, molecule counts and variables
-are evaluated at runtime and represent the current values during
-each iteration of the simulation. Expressions statements can contain any
+are evaluated at run time and represent the instantaneous values at the
+time at which the expression is evaluated.
+<tt class="docutils literal">Expressions statements</tt> can contain any
 arithmetic expression involving the standard operators &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;^&quot;
 (exponentiation), and the mathematical functions <tt class="docutils literal">sqrt, exp, log, log2, log10, sin,
 cos, tan, asin, acos, atan, sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh,
 erf, erfc, abs</tt>.</p>
+<p>Internally, <tt class="docutils literal">expression statements</tt> are converted into a compute stack
+in RPN format which is evaluated at run-time. Even though this
+procedure is fairly efficient, there is some numerical overhead
+incurred at each iteration and the use of complicated rate
+expressions should therefore be avoided if possible.</p>
 <p>Below is a list of all SGL blocks available for describing simulations.
 Presently, the order of blocks matters and should be exactly the same
 in which they are described below. Several SGL blocks are
-optional and are indicated as such below. This implies in particular
-that all non-optional blocks are required.</p>
+optional and are marked as such below.</p>
 <p>Currently, the SGL specs define the following block types with their
 respective block commands and block content:</p>
 <p><strong>parameter block:</strong> <tt class="docutils literal">&lt;block name&gt;</tt> = <em>parameters</em></p>
@@ -435,17 +438,18 @@ stdout every <em>outputBuffer</em> iterations. Larger values should
 result in faster simulations but require more system memory.
 Default is to write output every 10000 iterations.</p>
 <p class="last">Note: <em>outputBuffer</em> only affects how often output is written to
-the output file, not how much is being accumulated during a
+the output file, not how much output is actually generated during a
 simulation (see outputFreq parameter).</p>
 </dd>
 <dt><em>outputFreq</em> = <tt class="docutils literal">Integer</tt></dt>
-<dd>Frequency with which output is generated and written to the
-output file. Default is 1000.</dd>
+<dd>Iteration frequency with which output is generated. Default is every 1000
+iterations. Please note that output is written to the output file in batches of
+<em>outputBuffer</em>.</dd>
 <dt><em>systemVol</em> = <tt class="docutils literal">Double</tt></dt>
 <dd>Volume of the simulation system in liters. This is needed to
 properly compute the reaction rates in molar units. If rates
 should rather be interpreted as reaction propensities (like
-in <a class="footnote-reference" href="#id5" id="id4">[1]</a>) please set <em>systemVol = nil</em>. Default is a system
+in <a class="footnote-reference" href="#id4" id="id3">[1]</a>) please set <em>systemVol = nil</em>. Default is a system
 volume of 1.0 liter.</dd>
 <dt><em>outputFile</em> = <tt class="docutils literal">Quoted String</tt></dt>
 <dd>Name of the output file. This is the only required parameter
@@ -460,7 +464,10 @@ terminate.</dd>
 String = &lt;variable expression&gt;
 </pre>
 <p>where <tt class="docutils literal">String</tt> is the variable name, and <tt class="docutils literal">&lt;variable expression&gt;</tt>
-is either a <tt class="docutils literal">Double</tt> or an <tt class="docutils literal">expression statement</tt> as defined above.</p>
+is either a <tt class="docutils literal">Double</tt> or an <tt class="docutils literal">expression statement</tt> as defined above.
+Variables can be used in any other <tt class="docutils literal">expression statement</tt> in the
+SGL file including reaction rate definitions. Please make sure to
+not define a variable in terms of itself to avoid infinite recursion.</p>
 </blockquote>
 <p><strong>molecule block:</strong> <tt class="docutils literal">&lt;block name&gt;</tt> = <em>molecules</em></p>
 <blockquote>
@@ -479,15 +486,15 @@ def molecules
 end
 </pre>
 <p><strong>NOTE</strong>: Please do not use any of the predefined mathematical
-functions or internal variables (currently only <tt class="docutils literal">TIME</tt>) as
-molecule names since this will lead to undefined behaviour.</p>
+functions or defined variables (including <tt class="docutils literal">TIME</tt>) as
+molecule names since this will lead to undefined behavior.</p>
 </blockquote>
 <p><strong>reaction block</strong>: <tt class="docutils literal">&lt;block name&gt;</tt> = <em>reactions</em></p>
 <blockquote>
 <p>This block describes the reactions between molecules defined in
 the molecule block. Reactions are specified via</p>
 <pre class="literal-block">
-&lt;reactants&gt; -&gt; &lt;product&gt;  | &lt;rate expression&gt; |
+&lt;reactants&gt; -&gt; &lt;products&gt;  | &lt;rate expression&gt; |
 </pre>
 <p>Here, <tt class="docutils literal">&lt;reactants&gt;</tt> and <tt class="docutils literal">&lt;products&gt;</tt> are of the form</p>
 <pre class="literal-block">
@@ -508,16 +515,11 @@ define reactions
 end
 </pre>
 <p>In the first reaction, 2 <tt class="docutils literal">A</tt> molecules react with one <tt class="docutils literal">B</tt> to
-yield another <tt class="docutils literal">A</tt> at a rate of 10.0e-5 1/(Mol s). The second
+yield another <tt class="docutils literal">A</tt> at a rate of 10.0e-5. The second
 reaction describes a decay of <tt class="docutils literal">B</tt> back to <tt class="docutils literal">A</tt> at a rate
 that is computed based on the instantaneous number of <tt class="docutils literal">A</tt>
 molecules present and which decays exponentially with simulation
 time.</p>
-<p>Internally, rate expressions are converted into a compute stack
-in RPN format which is evaluated at run-time. Even though this
-procedure is fairly efficient, there is some numerical overhead
-incurred at each iteration and the use of complicated rate
-expressions should therefore be avoided if possible.</p>
 </blockquote>
 <p><strong>event block</strong>: <tt class="docutils literal">&lt;block name&gt;</tt> = <em>events</em></p>
 <blockquote>
@@ -528,13 +530,13 @@ Events are specified via</p>
 <pre class="literal-block">
 { &lt;trigger expression&gt; } =&gt; { &lt;action expression&gt; }
 </pre>
-<p>Here, trigger expression`` is of the form</p>
+<p>Here, <tt class="docutils literal">trigger expression</tt> is of the form</p>
 <pre class="literal-block">
 &lt;trigger primitive&gt; [ &lt;boolean operator&gt; &lt;trigger primitive&gt;]
 </pre>
 <p>with <tt class="docutils literal">&lt;trigger primitive&gt;</tt> defined by</p>
 <pre class="literal-block">
-expression statement relational operator expression statement
+&lt;expression statement&gt; relational operator &lt;expression statement&gt;
 </pre>
 <p>Each <tt class="docutils literal">&lt;trigger primitive&gt;</tt> contains two <tt class="docutils literal">expression statements</tt>
 as defined above and a <tt class="docutils literal">relational operator</tt> which can be
@@ -580,22 +582,16 @@ names that will be streamed to the output file in the same order:</p>
 <h1>Bugs</h1>
 <p>Please report all bugs and feature requests to
 &lt;haskelladdict at users dot sourceforge dot net&gt;.</p>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id3">2</a>)</em> Daniel T. Gillespie (1977). &quot;Exact Stochastic Simulation of Coupled Chemical Reactions&quot;. The Journal of Physical Chemistry 81 (25): 2340-2361</td></tr>
+</tbody>
+</table>
 <table class="docutils footnote" frame="void" id="id5" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> Daniel T. Gillespie (1977). &quot;Exact Stochastic Simulation of Coupled Chemical Reactions&quot;. The Journal of Physical Chemistry 81 (25): 2340-2361</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id6" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>Since <strong>simgi</strong> currently is an alpha version there may be fairly drastic changes to the SDL specs in future releases until the first beta release.</td></tr>
-</tbody>
-</table>
-<table class="docutils footnote" frame="void" id="id7" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[3]</a></td><td>An exception to this rule are line comments starting with <tt class="docutils literal"><span class="pre">--</span></tt> which ingnore everything until the next newline.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>An exception to this rule are line comments starting with <tt class="docutils literal"><span class="pre">--</span></tt> which ingnore everything until the next newline.</td></tr>
 </tbody>
 </table>
 </div>

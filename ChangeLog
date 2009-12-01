@@ -1,3 +1,14 @@
+2009-12-01 Markus Dittrich <haskelladdict@users.sourceforge.net>
+
+      * 0.2 released.
+      * significant overhaul of SGL language spec. This will break
+        backward compatibility with simgi 0.1.
+      * replaced simple RNG with a 64 bit Mersenne Twister implementation.
+      * added expression statements and the ability to describe
+        simulation events via the "events" block.
+      * added ability to specify output format.
+
+
 2009-06-02 Markus Dittrich <haskelladdict@users.sourceforge.net>
 
       * 0.1.1 release (identical to 0.1 with only a few minor

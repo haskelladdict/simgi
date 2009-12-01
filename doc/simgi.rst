@@ -88,7 +88,7 @@ A SGL file consists of zero or more descriptor blocks of the form
 
 The formatting of the input files is very flexible. In
 particular, neither newlines [2]_ nor extraneous whitespace matter. 
-Hence, the above SGL block could also be written on a single line. 
+Hence, the above SGL block could have also been written on a single line. 
 However, it is strongly recommended to stick to a consistent and 
 "visually simple" layout to aid in "comprehending" the underlying
 model. Also, it is important to point out that **simgi**'s parser is 

@@ -1,5 +1,5 @@
 Name:          simgi
-Version:       0.1
+Version:       0.2
 License:       GPL
 license-file:  COPYING
 copyright:     (C) 2009 Markus Dittrich
@@ -9,7 +9,7 @@ Description:   simgi is a stochastic simulation engine to model
                molecular systems using Gillespie's method.
 Author:        <haskelladdict@users.sourceforge.net>
 Maintainer:    <haskelladdict@users.sourceforge.net>
-stability:     alpha
+stability:     beta 
 build-type:    Simple
 Homepage:      http://simgi.sourceforge.net/
 cabal-version: >= 1.6

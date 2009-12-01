@@ -39,7 +39,7 @@ install: simgi
 	install -d $(htmldir)
 	install -m 0755 src/simgi $(bindir)/
 	install -m 0644 ChangeLog COPYING AUTHORS $(docdir)/
-	install -m 0644 doc/*.pdf doc/*.rst $(docdir)/
+	install -m 0644 doc/*.pdf $(docdir)/
 	install -m 0644 doc/*.html $(htmldir)/
 
 

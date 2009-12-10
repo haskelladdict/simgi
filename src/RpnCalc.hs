@@ -23,6 +23,7 @@
 -- into reverse polish notations
 module RpnCalc ( rpn_compute
                , get_val_from_symbolTable 
+               , try_evaluate_expression
                ) where
 
 
@@ -56,7 +57,7 @@ rpn_compute symbols theTime (RpnStack xs)       = num
     evaluate ((Number x):(Number y):ys) (BinFunc f) =
       (Number $ f y x):ys
 
-    -- extrace current time
+    -- extract current time
     evaluate ys (Time) = (Number theTime):ys
 
     -- extract molecule variable
@@ -75,3 +76,31 @@ get_val_from_symbolTable var aTime symbols =
     Nothing    -> case (M.!) (varSymbols symbols) var of
                     Constant c -> c
                     Function s -> rpn_compute symbols aTime s
+
+
+
+-- | try to evaluate an RPN stack and return the result as a Double
+-- if we can evaluate it during run-time (e.g. if it doesn't contain
+-- any variables)
+-- NOTE: In principle we could determine this already during parsing
+-- of a function expression but this would complicate the parser
+-- quite a bit since. It seems easier for now to just examine the
+-- stack afterward
+try_evaluate_expression :: RpnStack -> Either RpnStack Double
+try_evaluate_expression stack = 
+
+  if null . filter is_var_or_time . toList $ stack
+    then
+      Right $ rpn_compute fakeSymbolTable 0.0 stack 
+    else
+      Left stack
+
+  where
+    is_var_or_time x = case x of 
+                         Time       -> True
+                         Variable _ -> True
+                         otherwise  -> False
+
+    -- we create a "fake" empty SymbolTable since we don't need
+    -- it (sic!)
+    fakeSymbolTable = SymbolTable M.empty M.empty 

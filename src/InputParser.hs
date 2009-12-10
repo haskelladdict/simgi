@@ -36,6 +36,7 @@ import ExtraFunctions
 import GenericModel
 import RpnData
 import RpnParser
+import RpnCalc (try_evaluate_expression)
 
 -- import Debug.Trace
 
@@ -514,7 +515,12 @@ parse_constant_expression = Constant <$> parse_number
 
 -- | parser for a rate function
 parse_function_expression :: CharParser ModelState MathExpr
-parse_function_expression = Function <$> parse_infix_to_rpn
+parse_function_expression = optimize_if_possible <$> parse_infix_to_rpn
                          <?> "rate function" 
-
+  
+  where
+    optimize_if_possible x = case try_evaluate_expression x of 
+                               Right val -> Constant val
+                               Left func -> Function func
+ 
 

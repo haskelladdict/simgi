@@ -115,7 +115,8 @@ simpleReactParseTests =
              [("x",1),("y",1),("z",1)])
 
   , ("nil -> nil |{ sqrt(2.0) }  |",
-    Reaction (Function . RpnStack $ [Number 2.0, UnaFunc sqrt])
+ --   Reaction (Function . RpnStack $ [Number 2.0, UnaFunc sqrt])
+      Reaction (Constant 1.4142135623730951)
              []
              [])
   ]

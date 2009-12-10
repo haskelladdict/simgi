@@ -17,7 +17,7 @@ OBJECTS = src/simgi.hs src/CommandLine.hs src/Engine.hs  \
 	  src/PrettyPrint.hs src/RpnParser.hs src/RpnCalc.hs \
 	  src/RpnData.hs src/TokenParser.hs 
 
-all: simgi 
+all: debug
 
 simgi: $(OBJECTS) 
 	ghc -i./Models -i./src $(GHC_FLAGS_RELEASE) --make src/simgi.hs

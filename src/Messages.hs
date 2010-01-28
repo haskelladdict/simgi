@@ -65,7 +65,7 @@ startup_message state = show_version
     -- for nil volumes we want to display nil not -1.0
     finalSimVol = if (simVol < 0) 
                     then "nil"
-                    else (show simVol) ++ " m^3"
+                    else (show simVol) ++ " dm^3"
 
 
 -- | provide brief usage info

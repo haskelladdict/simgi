@@ -392,12 +392,12 @@ parse_reaction = setup_reaction
     convert_rate theConst@(Constant c) order volume =
       case order of
         1 -> theConst
-        _ -> Constant $ c/(avogadroNum * volume^(order-1))
+        _ -> Constant $ c/(avogadroNum * volume)^(order-1)
 
     convert_rate theFunc@(Function stack) order volume =
       case order of
         1 -> theFunc
-        _ -> let mult = 1.0/(avogadroNum * volume^(order-1)) in
+        _ -> let mult = 1.0/(avogadroNum * volume)^(order-1) in
                Function . RpnStack $ (toList stack) 
                                      ++ [Number mult,BinFunc (*)]
 

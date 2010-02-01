@@ -61,7 +61,8 @@ rpn_compute symbols theTime (RpnStack xs)       = num
     evaluate ys (Time) = (Number theTime):ys
 
     -- extract molecule variable
-    evaluate ys (Variable x) = (Number $ get_val_from_symbolTable x theTime symbols):ys 
+    evaluate ys (Variable x) = 
+      (Number $ get_val_from_symbolTable x theTime symbols):ys 
 
     evaluate ys item = item:ys
 
@@ -80,27 +81,28 @@ get_val_from_symbolTable var aTime symbols =
 
 
 -- | try to evaluate an RPN stack and return the result as a Double
--- if we can evaluate it during run-time (e.g. if it doesn't contain
--- any variables)
--- NOTE: In principle we could determine this already during parsing
--- of a function expression but this would complicate the parser
--- quite a bit since. It seems easier for now to just examine the
--- stack afterward
-try_evaluate_expression :: RpnStack -> Either RpnStack Double
-try_evaluate_expression stack = 
+-- if we can evaluate it during parse-time (i.e. if it doesn't contain
+-- things like time and molecule count)
+-- NOTE: We do _not_ want to substitute any molecule counts even
+-- if we should now them; molecule counts are inherently dynamic
+-- and need to be evaluated at run-time
+try_evaluate_expression :: RpnStack -> VariableMap -> Either RpnStack Double
+try_evaluate_expression stack varMap = 
 
-  if null . filter is_var_or_time . toList $ stack
+  if can_evaluate stack 
     then
-      Right $ rpn_compute fakeSymbolTable 0.0 stack 
+      Right $ rpn_compute (SymbolTable M.empty varMap) 0.0 stack 
     else
       Left stack
 
   where
-    is_var_or_time x = case x of 
-                         Time       -> True
-                         Variable _ -> True
-                         otherwise  -> False
 
-    -- we create a "fake" empty SymbolTable since we don't need
-    -- it (sic!)
-    fakeSymbolTable = SymbolTable M.empty M.empty 
+    can_evaluate = null . filter unknown_element . toList 
+      where
+        unknown_element x = case x of
+                              Time       -> True
+                              Variable v -> if v `elem` M.keys varMap
+                                            then False
+                                            else True
+                              _          -> False
+                                                   

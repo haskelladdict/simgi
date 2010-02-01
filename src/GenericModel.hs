@@ -77,7 +77,7 @@ data SymbolTable = SymbolTable { molSymbols :: MoleculeMap
 -- | generic data type for a mathematical expression. This could
 -- either be a constant or an expression inside an RpnStack
 data MathExpr = Constant Double | Function RpnStack
-
+              deriving(Show)
 
 -- | make MathExpr an instance of Eq
 -- We allow only comparison of constants with each other
@@ -121,7 +121,6 @@ type Actor = (String, Double -> Double)
 --   actors: a list of Actors
 --   react : a list of tuples (i,j) describing that the reaction
 --           changes the count of molecule i by j 
---
 data Reaction = Reaction { rate       :: Rate
                          , actors     :: [Actor]
                          , reaction   :: [(String,Int)]

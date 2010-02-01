@@ -10,7 +10,7 @@ htmldir=$(docdir)/html
 bindir=$(DESTDIR)$(prefix)/bin
 
 GHC_FLAGS_DEVEL = -O -Wall -fwarn-simple-patterns -fwarn-tabs -fwarn-incomplete-record-updates -fwarn-monomorphism-restriction -fwarn-implicit-prelude -fno-warn-orphans
-GHC_FLAGS_RELEASE = -O2
+GHC_FLAGS_RELEASE = -O2 
 
 OBJECTS = src/simgi.hs src/CommandLine.hs src/Engine.hs  \
 	  src/GenericModel.hs src/InputCheck.hs src/InputParser.hs \

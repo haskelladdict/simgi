@@ -31,7 +31,7 @@ import System.Exit
 
 -- local imports
 import Engine
-import GenericModel
+import GenericModel()
 import PrettyPrint
 import InputParser
 import TestHelpers

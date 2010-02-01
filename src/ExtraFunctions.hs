@@ -20,7 +20,7 @@
 --------------------------------------------------------------------}
 
 -- | definition of additional math and helper functions
-module ExtraFunctions ( avogadroNum
+module ExtraFunctions ( convert_rate
                       , erf
                       , erfc
                       , fact 
@@ -38,10 +38,15 @@ import Foreign.C.Types
 import Prelude 
 
 
+-- local imports
+import GenericModel (MathExpr(..))
+import RpnData (RpnStack(..), RpnItem(..))
+
+import Debug.Trace
+
 -- | a few constants
 avogadroNum :: Double
 avogadroNum = 6.0221415e23
-
 
 
 -- | use glibc DBL_EPSILON
@@ -159,4 +164,23 @@ erfc x
         if abs((d_old - d_new)/d_new) < dbl_epsilon
         then d_new
         else erfc_h n2 num_new d2 denom_new (i+0.5)
+
+
+
+-- | convert reaction propensities into rates if requested
+-- by the user. For constants we simply multiply, for
+-- rate functions we push the neccessary conversion onto
+-- the stack
+convert_rate :: MathExpr -> Int -> Double -> MathExpr
+convert_rate theConst@(Constant c) order volume =
+  case order of
+    1 -> theConst
+    _ -> Constant $ c/(avogadroNum * volume)^(order-1)
+
+convert_rate theFunc@(Function stack) order volume =
+    case order of
+      1 -> theFunc
+      _ -> let mult = 1.0/(avogadroNum * volume)^(order-1) in
+             Function . RpnStack $ (toList stack) 
+                                     ++ [Number mult,BinFunc (*)]
 

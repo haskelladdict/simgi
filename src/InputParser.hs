@@ -34,7 +34,6 @@ import TokenParser
 -- local imports
 import ExtraFunctions
 import GenericModel
-import RpnData
 import RpnParser
 import RpnCalc (try_evaluate_expression)
 
@@ -44,13 +43,8 @@ import RpnCalc (try_evaluate_expression)
 -- | main parser entry point
 input_parser :: CharParser ModelState ModelState
 input_parser = whiteSpace 
-{-               *> many ( choice [ try parse_parameter_def
-                                , try parse_molecule_def
-                                , try parse_reaction_def
-                                , try parse_event_def
-                                ])-}
-               *> parse_parameter_def
                *> optional (try parse_variable_def)
+               *> parse_parameter_def
                *> parse_molecule_def
                *> parse_reaction_def
                *> optional (try parse_event_def)
@@ -64,12 +58,13 @@ input_parser = whiteSpace
 -- | parser for variable definitions
 parse_variable_def :: CharParser ModelState ()
 parse_variable_def = join ( updateState <$> insert_variables <$>
-                            parse_def_block "variables" (many parse_variable) ) 
+                            parse_def_block "variables" (many parse_variable) )
                   <?> "variable definition block" 
 
   where
     insert_variables :: [(String, MathExpr)] -> ModelState -> ModelState
     insert_variables theVars state = state { variables = M.fromList theVars }
+
 
 
 -- | parser for a single variable definition
@@ -82,17 +77,22 @@ parse_variable = tuple_it <$> ((try parse_variable_name) )
     tuple_it one two = (one, two)
 
 
+
 -- | parser for variable name
 parse_variable_name :: CharParser ModelState String
 parse_variable_name = identifier 
                    <?> "variable name"
 
 
+
 -- | parse the definition for a variable
+-- NOTE: we can not use parse_function_expression since this
+-- will try to simplyfy in terms of the yet to be defined Variables
 parse_variable_definition :: CharParser ModelState MathExpr
 parse_variable_definition =  (try parse_constant_expression)
-                             <|> (braces parse_function_expression)
+                             <|> Function <$> (braces parse_infix_to_rpn)
                          <?> "variable value"
+
 
 
 -- | parser for output definitions
@@ -106,10 +106,12 @@ parse_output_def = join ( updateState <$> insert_output_request <$>
     insert_output_request outDataList state = state { outputRequest = outDataList }
 
 
+
 -- | parse the list with variables or molecules to be punched to the 
 -- output file
 parse_output_list :: CharParser ModelState [String]
 parse_output_list = brackets (commaSep parse_variable_name)
+
 
 
 -- | parser for event definitions
@@ -121,6 +123,7 @@ parse_event_def = join ( updateState <$> insert_events <$>
   where
     insert_events :: [Event] -> ModelState -> ModelState
     insert_events newEvents state = state { events = newEvents }
+
 
 
 
@@ -136,6 +139,7 @@ parse_trigger :: CharParser ModelState
                  ([EventTriggerPrimitive], [EventTriggerCombinator])
 parse_trigger = braces parse_trigger_expressions
              <?> "event trigger block"
+
 
 
 
@@ -176,6 +180,7 @@ parse_boolean_trigger_expression =
 parse_boolean_combinator :: CharParser ModelState EventTriggerCombinator
 parse_boolean_combinator = try parse_AND <|> parse_OR
                         <?> "boolean combinator"
+
  
 
 
@@ -186,10 +191,12 @@ parse_AND = symbol "&&" *> (pure AndCombinator)
   
 
 
+
 -- | parse an || combinator
 parse_OR :: CharParser ModelState EventTriggerCombinator
 parse_OR = symbol "||" *> (pure OrCombinator)
         <?> "||"
+
 
 
 
@@ -217,6 +224,7 @@ parse_action_expressions :: CharParser ModelState [EventAction]
 parse_action_expressions = 
   parse_single_action_expression `sepEndBy` semi 
                        <?> "event action expression"
+
 
 
 -- | parser for a single event action expression
@@ -263,7 +271,8 @@ parse_systemVol :: CharParser ModelState ()
 parse_systemVol = join (updateState <$> insert_volume
                        <$> (reserved "systemVol" *> reservedOp "="
                            *> (parse_positive_number
-                             <|> parse_systemVol_nil )))
+                             <|> parse_systemVol_nil ))) 
+--                             <|> (braces parse_evaluatable_expression))))
                <?> "system volume"
 
   where
@@ -274,6 +283,15 @@ parse_systemVol = join (updateState <$> insert_volume
     insert_volume vol state = state { systemVol = vol }
 
 
+{-
+parse_evaluatable_expression :: CharParser ModelState Double
+parse_evaluatable_expression = evaluate <$> parse_infix_to_rpn
+
+  where
+    evaluate x = case try_evaluate_expression x of 
+                   Right val -> Constant val
+                   Left func -> Function func
+-}
 
 -- | parse the name of the output file 
 -- accepts paths but will NOT create any of the parents
@@ -383,23 +401,6 @@ parse_reaction = setup_reaction
                  , actors   = hFactor
                  , reaction = action
                  }
-
-
-    -- | convert reaction propensities into rates if requested
-    -- by the user. For constants we simply multiply, for
-    -- rate functions we push the neccessary conversion onto
-    -- the stack
-    convert_rate theConst@(Constant c) order volume =
-      case order of
-        1 -> theConst
-        _ -> Constant $ c/(avogadroNum * volume)^(order-1)
-
-    convert_rate theFunc@(Function stack) order volume =
-      case order of
-        1 -> theFunc
-        _ -> let mult = 1.0/(avogadroNum * volume)^(order-1) in
-               Function . RpnStack $ (toList stack) 
-                                     ++ [Number mult,BinFunc (*)]
 
 
 
@@ -513,14 +514,19 @@ parse_constant_expression = Constant <$> parse_number
 
 
 
--- | parser for a rate function
+-- | parser for function expressions
+-- NOTE: We are trying to simplify expressions based on defined
+-- variables
 parse_function_expression :: CharParser ModelState MathExpr
-parse_function_expression = optimize_if_possible <$> parse_infix_to_rpn
+parse_function_expression = optimize_if_possible <$> parse_infix_to_rpn 
+                            <*> (getState 
+                                >>= \(ModelState { variables = vars })
+                                    -> pure vars )  
                          <?> "rate function" 
   
   where
-    optimize_if_possible x = case try_evaluate_expression x of 
-                               Right val -> Constant val
-                               Left func -> Function func
+    optimize_if_possible x vars = case try_evaluate_expression x vars of 
+                                    Right val -> Constant val
+                                    Left func -> Function func
  
 

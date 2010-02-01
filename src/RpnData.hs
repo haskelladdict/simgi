@@ -42,7 +42,7 @@ data RpnItem = Time
 -- | RpnStack describes a computation stored in a stack of
 -- RpnItems
 newtype RpnStack = RpnStack { toList :: [RpnItem] }
-
+  deriving(Show) 
 
 -- | make RpnStack an instance of Eq. 
 -- We compare two RpnStacks by computing them and replacing
@@ -81,7 +81,7 @@ internal_rpn_compute (RpnStack xs)           = num
     -- extrace current time
     evaluate ys (Time) = (Number defaultVar):ys
 
-    -- extract molecule variable
+    -- extract variable name
     evaluate ys (Variable x) = (Number defaultVar):ys
 
     evaluate ys item = item:ys

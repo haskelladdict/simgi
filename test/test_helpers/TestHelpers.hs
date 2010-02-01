@@ -107,4 +107,5 @@ testModelState = ModelState { molCount         = M.empty
                             , outputFreq       = 1000
                             , outputCache      = []
                             , outfileName      = ""
+                            , variables        = M.empty
                             }

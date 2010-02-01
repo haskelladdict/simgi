@@ -29,6 +29,7 @@ module ExtraFunctions ( convert_rate
                       , maybe_to_int
                       , maybe_to_positive_int
                       , real_exp 
+                      , to_int
                       ) where
 
 
@@ -42,7 +43,7 @@ import Prelude
 import GenericModel (MathExpr(..))
 import RpnData (RpnStack(..), RpnItem(..))
 
-import Debug.Trace
+--import Debug.Trace
 
 -- | a few constants
 avogadroNum :: Double
@@ -184,3 +185,10 @@ convert_rate theFunc@(Function stack) order volume =
              Function . RpnStack $ (toList stack) 
                                      ++ [Number mult,BinFunc (*)]
 
+
+-- | convert a double to int
+-- NOTE: presently, converting double -> int is done
+-- via floor. Is this a good policy (once documented
+-- properly)?
+to_int :: (RealFrac a, Integral b) => a -> b
+to_int = floor 

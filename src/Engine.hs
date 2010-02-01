@@ -216,12 +216,6 @@ execute_single_action eventAction symbols t =
                         adjust_count aName newCount 
   
       where
-        -- NOTE: presently, converting double -> int is done
-        -- via floor. Is this a good policy (once documented
-        -- properly)?
-        to_int :: Double -> Int
-        to_int = floor 
-
         -- adjust either a molecule count or the value of a
         -- variable
         adjust_count key val = case M.member key (molSymbols symbols) of

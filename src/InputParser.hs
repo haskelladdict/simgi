@@ -245,7 +245,7 @@ parse_parameter_def = parse_def_block "parameters" (many parse_parameters)
 
 -- | parse the individual parameters
 parse_parameters :: CharParser ModelState ()
-parse_parameters = parse_time
+parse_parameters =  parse_time
                 <|> parse_outputFile
                 <|> parse_outputBuffer
                 <|> parse_outputFreq
@@ -258,11 +258,12 @@ parse_parameters = parse_time
 -- | parse the simulation time specs
 parse_time :: CharParser ModelState ()
 parse_time = join (updateState <$> insert_time 
-                   <$> (reserved "time" *> reservedOp "=" 
-                        *> parse_number))
+               <$> (reserved "time" *> reservedOp "=" 
+                  *> parse_and_simplify_to_constant_expression ))
   
   where
     insert_time t state = state { maxTime = t }
+                           
 
 
 
@@ -270,9 +271,8 @@ parse_time = join (updateState <$> insert_time
 parse_systemVol :: CharParser ModelState ()
 parse_systemVol = join (updateState <$> insert_volume
                        <$> (reserved "systemVol" *> reservedOp "="
-                           *> (parse_positive_number
+                        *> (     parse_and_simplify_to_constant_expression
                              <|> parse_systemVol_nil ))) 
---                             <|> (braces parse_evaluatable_expression))))
                <?> "system volume"
 
   where
@@ -283,15 +283,6 @@ parse_systemVol = join (updateState <$> insert_volume
     insert_volume vol state = state { systemVol = vol }
 
 
-{-
-parse_evaluatable_expression :: CharParser ModelState Double
-parse_evaluatable_expression = evaluate <$> parse_infix_to_rpn
-
-  where
-    evaluate x = case try_evaluate_expression x of 
-                   Right val -> Constant val
-                   Left func -> Function func
--}
 
 -- | parse the name of the output file 
 -- accepts paths but will NOT create any of the parents
@@ -316,10 +307,10 @@ parse_filename = stringLiteral
 parse_outputBuffer :: CharParser ModelState ()
 parse_outputBuffer = join (updateState <$> insert_outputBuffer
                      <$> (reserved "outputBuffer" *> reservedOp "="
-                             *> integer ))
+                      *> parse_and_simplify_to_constant_expression ))
 
   where
-    insert_outputBuffer i state = state { outputBufferSize = i }
+    insert_outputBuffer i state = state { outputBufferSize = to_int i }
 
 
 
@@ -327,10 +318,10 @@ parse_outputBuffer = join (updateState <$> insert_outputBuffer
 parse_outputFreq :: CharParser ModelState ()
 parse_outputFreq = join (updateState <$> insert_outputFreq
                         <$> (reserved "outputFreq" *> reservedOp "="
-                             *> integer ))
+                         *> parse_and_simplify_to_constant_expression ))
 
   where
-    insert_outputFreq i state = state { outputFreq = i }
+    insert_outputFreq i state = state { outputFreq = to_int i }
 
 
 
@@ -529,4 +520,17 @@ parse_function_expression = optimize_if_possible <$> parse_infix_to_rpn
                                     Right val -> Constant val
                                     Left func -> Function func
  
+
+
+parse_and_simplify_to_constant_expression :: CharParser ModelState Double
+parse_and_simplify_to_constant_expression =
+  join ( try_convert <$> (     parse_constant_expression 
+                           <|> (braces parse_function_expression) ))
+    <?> "evaluate math expression"
+
+  where
+    try_convert x = 
+      case x of 
+        Constant c -> return c
+        _          -> fail "unknown variable: expression could not be evaluated."
 

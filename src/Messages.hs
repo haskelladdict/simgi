@@ -1,6 +1,6 @@
 {-----------------------------------------------------------------
  
-  (c) 2009 Markus Dittrich 
+  (c) 2009-2010 Markus Dittrich 
  
   This program is free software; you can redistribute it 
   and/or modify it under the terms of the GNU General Public 
@@ -35,7 +35,7 @@ import GenericModel
 
 -- | show version info
 show_version :: IO ()
-show_version = putStrLn "This is simgi v0.3 (C) 2009 Markus Dittrich"
+show_version = putStrLn "This is simgi v0.3 (c) 2009-2010 Markus Dittrich"
 
 
 

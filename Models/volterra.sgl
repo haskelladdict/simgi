@@ -5,25 +5,25 @@
 
 ------------------------------------------------------}
 
-def parameters
+parameters
   time         = 50.0
   outputBuffer = 50000
   outputFreq   = 200
   systemVol    = nil  -- interpret rates as propensities
-  outputFile   = "volterra_output.dat"
 end
 
-def molecules
+molecules
   x = 1000
   y = 2000
 end
 
-def reactions
+reactions
   x      -> 2x       | 10.0 |
   x + y  -> 2y       | 0.01 |
   y      -> nil      | 10.0 |
 end 
 
-def output
-  [x,y]
+output
+  outputFile   = "volterra_output.dat"
+  [TIME,x,y]
 end

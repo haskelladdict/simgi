@@ -5,21 +5,20 @@
 
 ------------------------------------------------------}
 
-def parameters
+parameters
   time         = 50.0
   outputBuffer = 50000
   outputFreq   = 500
   systemVol    = nil  -- interpret rates as propensities
-  outputFile   = "oregonator_output.dat"
 end
 
-def molecules
+molecules
   x = 500
   y = 1000
   z = 2000  
 end
 
-def reactions
+reactions
   y      -> x         | 2.0   |
   x + y  -> nil       | 0.1   |
   x      -> 2x + z    | 104.0 |
@@ -27,6 +26,7 @@ def reactions
   z      -> y         | 26.0  |
 end
 
-def output
-  [x,y,z]
+output
+  outputFile   = "oregonator_output.dat"
+  [TIME,x,y,z]
 end

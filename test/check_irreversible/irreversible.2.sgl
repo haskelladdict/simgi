@@ -4,7 +4,6 @@ def parameters
   systemVol  = 1.25e-19 
   outputBuffer = 50000 
   outputFreq = 100
-  outputFile = "irreversible.2.dat"
 end
 
 def molecules
@@ -19,4 +18,5 @@ end
 
 def output
   [a, b, c]
+  outputFile = "irreversible.2.dat"
 end

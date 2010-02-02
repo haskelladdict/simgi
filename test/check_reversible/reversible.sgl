@@ -10,7 +10,6 @@ def parameters
   systemVol  = 1.25e-19
   outputBuffer = 50000
   outputFreq = 10
-  outputFile = "reversible.dat"
 end
 
 def molecules
@@ -26,4 +25,5 @@ end
 
 def output
   [a, b, c]
+  outputFile = "reversible.dat"
 end

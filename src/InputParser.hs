@@ -95,24 +95,49 @@ parse_variable_definition =  (try parse_constant_expression)
 
 
 
--- | parser for output definitions
+-- | parser for the output block
 parse_output_def :: CharParser ModelState ()
-parse_output_def = join ( updateState <$> insert_output_request <$>
-                         parse_def_block "output" (parse_output_list) ) 
-               <?> "event definitions" 
+parse_output_def = parse_def_block "output" (many parse_output_specs) 
+                   *> pure ()
+                <?> "output block"
 
-  where
-    insert_output_request :: [String] -> ModelState -> ModelState
-    insert_output_request outDataList state = state { outputRequest = outDataList }
+
+
+-- | parser for the individual output block specifications
+parse_output_specs :: CharParser ModelState ()
+parse_output_specs = parse_output_list 
+                  <|> parse_output_file
+                  <?> "output specifications"
 
 
 
 -- | parse the list with variables or molecules to be punched to the 
 -- output file
-parse_output_list :: CharParser ModelState [String]
-parse_output_list = brackets (commaSep parse_variable_name)
+parse_output_list :: CharParser ModelState ()
+parse_output_list = join (updateState <$> insert_output_list
+                      <$> (brackets (commaSep parse_variable_name)))
+
+  where
+    insert_output_list :: [String] -> ModelState -> ModelState
+    insert_output_list outDataList state = state { outputRequest = outDataList }
 
 
+
+-- | parse the name of the output file 
+-- accepts paths but will NOT create any of the parents
+parse_output_file :: CharParser ModelState ()
+parse_output_file = join (updateState <$> insert_filename
+                     <$> (reserved "outputFile" *> reservedOp "="
+                          *> parse_filename ))
+
+  where
+    insert_filename aName state = state { outfileName = aName }
+
+
+
+-- | parse a filename
+parse_filename :: CharParser ModelState String
+parse_filename = stringLiteral
 
 -- | parser for event definitions
 parse_event_def :: CharParser ModelState ()
@@ -246,12 +271,11 @@ parse_parameter_def = parse_def_block "parameters" (many parse_parameters)
 -- | parse the individual parameters
 parse_parameters :: CharParser ModelState ()
 parse_parameters =  parse_time
-                <|> parse_outputFile
                 <|> parse_outputBuffer
                 <|> parse_outputFreq
                 <|> parse_systemVol
-                <?> "time, outputBuffer, systemVol, outputFreq,\
-                    \outputFile"
+                <?> "time, outputBuffer, systemVol, outputFreq"
+                    
 
 
 
@@ -281,25 +305,6 @@ parse_systemVol = join (updateState <$> insert_volume
     parse_systemVol_nil = reserved "nil" *> pure (-1.0)
 
     insert_volume vol state = state { systemVol = vol }
-
-
-
--- | parse the name of the output file 
--- accepts paths but will NOT create any of the parents
-parse_outputFile :: CharParser ModelState ()
-parse_outputFile = join (updateState <$> insert_filename
-                     <$> (reserved "outputFile" *> reservedOp "="
-                          *> parse_filename ))
-
-  where
-    insert_filename aName state = state { outfileName = aName }
-
-
-
--- | parse a filename
-parse_filename :: CharParser ModelState String
-parse_filename = stringLiteral
-
 
 
 

@@ -41,14 +41,12 @@ check_input (ModelState { molCount         = theMols
                         , reactions        = theReactions
                         , outputBufferSize = iterCount
                         , outputFreq       = outFreq
-                        , outfileName      = fileName
                         , variables        = theVars
                         , events           = theEvents
                         }) 
   = check_molecules (M.keys theMols) (react_mols theReactions)
     >> check_positive_outfreq outFreq
     >> check_positive_itercount iterCount
-    >> check_filename fileName
     >> check_variable_names defined_names
          (extract_variable_names (M.elems theVars)) "variables"
     >> check_variable_names defined_names 
@@ -110,14 +108,6 @@ extract_variable_names_from_events theEvents =
     actionExps  = foldr ((:) . evtAct) [] . allActions
 
     allActionNames = foldr ((:) . evtName) [] . allActions
-
-
-
--- | make sure the user specified an output file name
-check_filename :: String -> Either String Bool
-check_filename name 
-  | name == ""  = Left "Error: Please specify an output file name!"
-  | otherwise   = Right True
 
 
 

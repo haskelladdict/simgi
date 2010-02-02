@@ -23,8 +23,6 @@ module Main where
 
 -- imports
 import Prelude
-import System.IO
---import System.Random
 import System.Environment
 
 -- local imports
@@ -32,6 +30,7 @@ import CommandLine
 import Engine
 import InputCheck
 import InputParser
+import IO
 import Messages
 import TokenParser
 
@@ -74,8 +73,7 @@ main =
                   outFile       = outfileName parsedState
                 in
 
-                  -- open output file
-                  openFile outFile WriteMode 
+                  get_handle outFile
                   >>= \handle -> 
 
                   -- print initial startup info
@@ -85,6 +83,4 @@ main =
                   >> gillespie_driver handle totalTime dataDumpIter 
                                   initialState 
 
-                  -- close output file
-                  >> hClose handle
-
+                  >> close_handle handle

@@ -35,12 +35,13 @@ import Prelude
 import Text.Printf
 import System.Random(randomR)
 import qualified System.Random.Mersenne.Pure64 as MT
-import System.IO
+--import System.IO
 
 
 -- local imports
 import ExtraFunctions
 import GenericModel
+import IO
 import RpnCalc
 
 
@@ -49,7 +50,7 @@ import RpnCalc
 -- 1) the number of iterations is exhausted
 -- 2) the current time is > t_max, if t_max is set to
 --    zero t_max is treated as being infinity 
-gillespie_driver :: Handle -> Double -> Integer -> ModelState -> IO ()
+gillespie_driver :: FileHandle -> Double -> Integer -> ModelState -> IO ()
 gillespie_driver handle simTime dmpIter state =  
   let 
     (output, outState)  = runState run_gillespie $ state 
@@ -58,7 +59,7 @@ gillespie_driver handle simTime dmpIter state =
   in
     -- write output to console and the output file
     (write_info $ head reversedOutput)
-    >> (write_data handle reversedOutput)
+    >> (write_to_handle handle reversedOutput)
 
     -- next iteration if we're not at the end
     >> if curTime < simTime
@@ -343,19 +344,3 @@ write_info (Output {iteration = it, time = t}) =
 
 
 
--- | basic routine writing the simulation output to the 
--- file handle corresponding to the output file
-write_data :: Handle -> [Output] -> IO ()
-write_data _ [] = return ()
-write_data handle ((Output {iteration = it, time = t, outputData = out}):xs) = 
-
-  let 
-    header = (printf "%-10d %18.15g  " it t) :: String
-    counts = create_count_string out
-  in
-    hPutStrLn handle (header ++ counts)
-    >> write_data handle xs
-
-  where
-    create_count_string :: [Double] -> String
-    create_count_string = foldr (\x a -> (printf "%18.15f  " x) ++ a) ""

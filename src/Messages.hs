@@ -18,7 +18,7 @@
 
 --------------------------------------------------------------------}
 
--- | main gsim driver
+-- | message routines used in simgi
 module Messages ( show_version 
                 , startup_message
                 , usage

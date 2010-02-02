@@ -24,6 +24,6 @@ def reactions
 end
 
 def output
-  [a, b, c]
+  [ITERATION, TIME, a, b, c]
   outputFile = "reversible.dat"
 end

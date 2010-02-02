@@ -60,11 +60,13 @@ import RpnData
 type MoleculeMap = M.Map String Int
 
 
+
 -- | A VariableMap holds all definied variables and their 
 -- current value.
 -- NOTE: variables may change their each iteration since
 -- they may be time dependent.
 type VariableMap = M.Map String MathExpr
+
 
 
 -- | SymbolTable holds all names we know about such as molecule
@@ -74,10 +76,13 @@ data SymbolTable = SymbolTable { molSymbols :: MoleculeMap
                                }
 
 
+
 -- | generic data type for a mathematical expression. This could
 -- either be a constant or an expression inside an RpnStack
 data MathExpr = Constant Double | Function RpnStack
               deriving(Show)
+
+
 
 -- | make MathExpr an instance of Eq
 -- We allow only comparison of constants with each other
@@ -89,14 +94,17 @@ instance Eq MathExpr where
   _             == _             =   False
 
 
+
 -- | data type for variable values which are of type MathExpr
 -- i.e. they can either be a number or a function involving, e.g.,
 -- TIME or molecule counts
 type VariableValue = Double
 
 
+
 -- | data type for reaction rates which are of type MathExpr
 type Rate = MathExpr
+
 
 
 -- | List of reactions and corresponding rates
@@ -199,6 +207,7 @@ data EventTriggerPrimitive = EventTriggerPrimitive
 data EventTriggerCombinator = AndCombinator | OrCombinator
 
 
+
 -- | data type keeping track of possible events occuring during
 -- the simulation. Each event consist of a
 --
@@ -244,9 +253,9 @@ type GillespieState a = State ModelState a
 
 
 -- | data structure for keeping track of our output
-data Output = Output { iteration  :: Integer
-                     , time       :: Double
-                     , outputData :: [Double]
+data Output = Output { iteration :: Integer
+                     , time      :: Double
+                     , outputData :: [Double] 
                      }
   deriving(Show)
 

@@ -18,5 +18,5 @@ end
 
 def output
   outputFile = "irreversible.1.dat"
-  [a, b, c]
+  [TIME, ITERATION, a, b, c]
 end

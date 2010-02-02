@@ -35,7 +35,6 @@ import Prelude
 import Text.Printf
 import System.Random(randomR)
 import qualified System.Random.Mersenne.Pure64 as MT
---import System.IO
 
 
 -- local imports
@@ -237,7 +236,7 @@ generate_output afreq it t symTable outVars outlist
   | otherwise          = new_out:outlist
 
     where
-      currentOutputList = grab_output_data outVars t symTable
+      currentOutputList = grab_output_data outVars t it symTable
 
       new_out = Output { iteration  = it
                        , time       = t
@@ -249,9 +248,15 @@ generate_output afreq it t symTable outVars outlist
 -- | given a list of variable or molecule names, goes through the
 -- symbol table, grabs the current values associated with the variables,
 -- and returns them as a list
-grab_output_data :: [String] -> Double -> SymbolTable -> [Double]
-grab_output_data vars aTime symbols = 
-  foldr (\x acc -> (get_val_from_symbolTable x aTime symbols):acc) [] vars
+grab_output_data :: [String] -> Double -> Integer -> SymbolTable -> [Double]
+grab_output_data vars aTime iter symbols = 
+  foldr (\x acc -> (get_val x aTime iter symbols):acc) [] vars
+
+  where
+    get_val x t it syms = case x of
+                            "TIME"      -> t
+                            "ITERATION" -> fromInteger it
+                            _           -> get_val_from_symbolTable x t syms
                                 
 
 
@@ -320,7 +325,7 @@ create_initial_output (ModelState { molCount      = initialMols
 
   where
     symbols = SymbolTable initialMols initialVars
-    initialOutput = grab_output_data outVars 0.0 symbols
+    initialOutput = grab_output_data outVars 0.0 0 symbols
 
 
 

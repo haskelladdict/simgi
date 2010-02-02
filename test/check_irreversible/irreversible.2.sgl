@@ -17,6 +17,6 @@ def reactions
 end 
 
 def output
-  [a, b, c]
+  [TIME, ITERATION, a, b, c]
   outputFile = "irreversible.2.dat"
 end

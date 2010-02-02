@@ -35,7 +35,7 @@ import GenericModel
 
 -- | show version info
 show_version :: IO ()
-show_version = putStrLn "This is simgi v0.2 (C) 2009 Markus Dittrich"
+show_version = putStrLn "This is simgi v0.3 (C) 2009 Markus Dittrich"
 
 
 

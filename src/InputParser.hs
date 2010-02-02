@@ -34,8 +34,7 @@ import TokenParser
 -- local imports
 import ExtraFunctions
 import GenericModel
-import RpnCalc (try_evaluate_expression)
-import RpnData (RpnItem(Variable), RpnStack(toList))
+import RpnCalc (check_variable_map, try_evaluate_expression)
 import RpnParser
 
 -- import Debug.Trace
@@ -75,27 +74,12 @@ parse_variable_def = join ( updateState <$>
 
     -- | here we check that all variables can be evaluated (i.e. there are
     -- no self references and such). 
-    check_all_vars :: CharParser ModelState () -- -> CharParser ModelState ()
+    check_all_vars :: CharParser ModelState () 
     check_all_vars = getState >>= \(ModelState {variables = vars}) ->
-                      case check_var vars of
+                      case check_variable_map vars of
                         True -> pure ()
                         _    -> fail "Error: circular references in variable \
                                      \definitions found"
-
-      where
-        check_var = foldr (\i a -> a && check_item i) True . M.toList
-          
-          where
-            check_item (_,(Constant _)) = True
-            check_item (s,(Function stack)) = 
-              null . filter (contains s) $ toList stack
-
-            contains s x = case x of
-                             Variable v -> if v == s
-                                             then True
-                                             else False
-                             _          -> False
-
 
 
 

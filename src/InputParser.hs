@@ -345,10 +345,11 @@ parse_molecule_def = join ( updateState <$> insert_molecules <$>
 
 -- | parse a molecule name and the number of molecules of this type
 parse_molecules :: CharParser ModelState (String,Int)
-parse_molecules = make_molecule <$> (try molname) <*> (symbol "=" *> integer)
+parse_molecules = make_molecule <$> (try molname) 
+                  <*> (symbol "=" *> parse_and_simplify_to_constant_expression)
                 <?> "molecule expression"
   where
-    make_molecule mol aCount = (mol,fromInteger aCount)
+    make_molecule mol aCount = (mol, to_int aCount)
 
 
 -- | parser for a molecule name 

@@ -34,8 +34,9 @@ import TokenParser
 -- local imports
 import ExtraFunctions
 import GenericModel
-import RpnParser
 import RpnCalc (try_evaluate_expression)
+import RpnData (RpnItem(Variable), RpnStack(toList))
+import RpnParser
 
 -- import Debug.Trace
 
@@ -43,27 +44,58 @@ import RpnCalc (try_evaluate_expression)
 -- | main parser entry point
 input_parser :: CharParser ModelState ModelState
 input_parser = whiteSpace 
-               *> optional (try parse_variable_def)
-               *> parse_parameter_def
-               *> parse_molecule_def
-               *> parse_reaction_def
-               *> optional (try parse_event_def)
-               *> optional parse_output_def 
+               *> (many block_parsers)
                *> eof
                >> getState
             <?> "main parser"
 
 
+-- | parse each of the possible input blocks
+block_parsers :: CharParser ModelState ()
+block_parsers = parse_variable_def
+             <|> parse_parameter_def
+             <|> parse_molecule_def
+             <|> parse_reaction_def
+             <|> parse_event_def
+             <|> parse_output_def 
+
+
 
 -- | parser for variable definitions
 parse_variable_def :: CharParser ModelState ()
-parse_variable_def = join ( updateState <$> insert_variables <$>
+parse_variable_def = join ( updateState <$> 
+                            insert_variables <$>
                             parse_def_block "variables" (many parse_variable) )
+                     *> check_all_vars
                   <?> "variable definition block" 
 
   where
     insert_variables :: [(String, MathExpr)] -> ModelState -> ModelState
     insert_variables theVars state = state { variables = M.fromList theVars }
+
+    -- | here we check that all variables can be evaluated (i.e. there are
+    -- no self references and such). 
+    check_all_vars :: CharParser ModelState () -- -> CharParser ModelState ()
+    check_all_vars = getState >>= \(ModelState {variables = vars}) ->
+                      case check_var vars of
+                        True -> pure ()
+                        _    -> fail "Error: circular references in variable \
+                                     \definitions found"
+
+      where
+        check_var = foldr (\i a -> a && check_item i) True . M.toList
+          
+          where
+            check_item (_,(Constant _)) = True
+            check_item (s,(Function stack)) = 
+              null . filter (contains s) $ toList stack
+
+            contains s x = case x of
+                             Variable v -> if v == s
+                                             then True
+                                             else False
+                             _          -> False
+
 
 
 
@@ -483,7 +515,7 @@ parse_def_block :: String -> CharParser ModelState a
                 -> CharParser ModelState a
 parse_def_block blockName parser = 
 
-  between (reserved "def" *> reserved blockName )
+  between (reserved blockName )
           (reserved "end")
           (parser)
   <?> "parameter definitions"
@@ -538,5 +570,6 @@ parse_and_simplify_to_constant_expression =
     try_convert x = 
       case x of 
         Constant c -> return c
-        _          -> fail "unknown variable: expression could not be evaluated."
+        _          -> fail "Error: unknown variable, \
+                           \expression could not be evaluated."
 

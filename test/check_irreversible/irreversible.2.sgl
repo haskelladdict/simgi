@@ -1,22 +1,22 @@
 
-def parameters
+parameters
   time       = 1.0
   systemVol  = 1.25e-19 
   outputBuffer = 50000 
   outputFreq = 100
 end
 
-def molecules
+molecules
   a = 1000
   b = 1000
   c = 0
 end
 
-def reactions
+reactions
   b -> c  | 1e6 |
 end 
 
-def output
+output
   [TIME, ITERATION, a, b, c]
   outputFile = "irreversible.2.dat"
 end

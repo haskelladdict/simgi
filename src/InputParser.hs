@@ -561,7 +561,9 @@ parse_function_expression = optimize_if_possible <$> parse_infix_to_rpn
                                     Left func -> Function func
  
 
-
+-- | parser for either a constant or an expression statement that can be
+-- simplified to constant. After parsing we simplify any expression statement 
+-- to a constant (this should be that case for all variables.
 parse_and_simplify_to_constant_expression :: CharParser ModelState Double
 parse_and_simplify_to_constant_expression =
   join ( try_convert <$> (     parse_constant_expression 

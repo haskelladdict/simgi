@@ -51,8 +51,6 @@ check_input (ModelState { molCount         = theMols
   = check_molecules (M.keys theMols) (react_mols theReactions)
     >> check_positive_outfreq outFreq
     >> check_positive_itercount iterCount
-    >> check_variable_names defined_names
-         (extract_variable_names (M.elems theVars)) "variables"
     >> check_variable_names defined_names 
          (extract_variable_names_from_rates theReactions) "reactions"
     >> check_variable_names defined_names

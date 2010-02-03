@@ -19,7 +19,10 @@
 --------------------------------------------------------------------}
 
 -- | module responsible for doing some basic input checking
-module InputCheck ( check_input ) where
+module InputCheck ( check_input 
+                  , check_variables_for_cycles
+                  , check_variables_for_undefs
+                  ) where
 
 -- imports
 import Control.Monad.Error()
@@ -185,3 +188,47 @@ check_variable_names defMols rateMols checkType =
         ++ checkType
         ++ " block do not exist:\n -->  " 
         ++ (L.concat $ L.intersperse ", " noMol)
+
+
+
+-- | check a variable map for obvious problems such as circular
+-- references and others
+check_variables_for_cycles :: VariableMap -> Maybe String
+check_variables_for_cycles vmap = 
+  if null cyclicVariables 
+    then Nothing
+    else Just $ "Error: circular references for variables \
+                \found:" ++ (stringify cyclicVariables)
+
+  where
+    stringify = foldr (\x a -> a ++ " " ++ x) ""
+
+    cyclicVariables = foldr check_item [] . M.toList $ vmap
+
+    check_item (_,(Constant _)) acc     = acc
+    check_item (s,(Function stack)) acc = cycles ++ acc
+
+      where
+        cycles = foldr contains [] $ toList stack
+        contains x a = case x of
+                         Variable v -> if v == s
+                                         then (s:a) 
+                                         else a
+                         _          -> a
+
+
+-- | check if all elements in our variable list are defined  
+-- we can re-use check_variable_names with only a bit of
+-- re-packaging
+check_variables_for_undefs :: VariableMap -> Maybe String
+check_variables_for_undefs vmap =  
+  case check_variable_names (M.keys vmap) 
+    (extract_variable_names (M.elems vmap)) "variables" of
+    Left s  -> Just s
+    Right _ -> Nothing
+
+
+
+
+
+

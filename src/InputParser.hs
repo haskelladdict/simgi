@@ -34,7 +34,8 @@ import TokenParser
 -- local imports
 import ExtraFunctions
 import GenericModel
-import RpnCalc (check_variable_map, try_evaluate_expression)
+import InputCheck(check_variables_for_cycles, check_variables_for_undefs)
+import RpnCalc (try_evaluate_expression)
 import RpnParser
 
 -- import Debug.Trace
@@ -73,13 +74,20 @@ parse_variable_def = join ( updateState <$>
     insert_variables theVars state = state { variables = M.fromList theVars }
 
     -- | here we check that all variables can be evaluated (i.e. there are
-    -- no self references and such). 
+    -- no self references, all elements are defined and such). 
+    -- NOTE: We have to check our variables at parse time since we evaluate
+    -- them during later parsing stages which will fail if they are ill 
+    -- defined.
     check_all_vars :: CharParser ModelState () 
     check_all_vars = getState >>= \(ModelState {variables = vars}) ->
-                      case check_variable_map vars of
-                        True -> pure ()
-                        _    -> fail "Error: circular references in variable \
-                                     \definitions found"
+
+      case check_variables_for_cycles vars of
+        Just cycMsg -> fail cycMsg
+        Nothing  -> 
+
+          case check_variables_for_undefs vars of
+            Just undefMsg -> fail undefMsg
+            Nothing       -> pure ()
 
 
 

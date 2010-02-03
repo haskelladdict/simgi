@@ -21,9 +21,8 @@
 -- | RpnCalc defines the data structures and a calculator engine
 -- for computing mathematical expressions that have been parsed
 -- into reverse polish notations
-module RpnCalc ( check_variable_map
+module RpnCalc ( get_val_from_symbolTable 
                , rpn_compute
-               , get_val_from_symbolTable 
                , try_evaluate_expression
                ) where
 
@@ -36,7 +35,6 @@ import Prelude
 import GenericModel
 import RpnData
 
--- import Debug.Trace
 
 -- | computes an expressions based on an rpn stack
 -- molecule names are looked up in a MoleculeMap
@@ -107,22 +105,3 @@ try_evaluate_expression stack varMap =
                                             else True
                               _          -> False
                                                    
-
-
--- | check a variable map for obvious problems such as circular
--- references and others
-check_variable_map :: VariableMap -> Bool
-check_variable_map = foldr (\i a -> a && check_item i) True . M.toList
-          
-  where
-    check_item (_,(Constant _)) = True
-    check_item (s,(Function stack)) = 
-      null . filter (contains s) $ toList stack
-
-    contains s x = case x of
-                     Variable v -> if v == s
-                                     then True
-                                     else False
-                     _          -> False
-
-

@@ -230,13 +230,13 @@ execute_single_action eventAction symbols t =
 -- | generate a new Output data structure based on the current
 -- molecule counts
 generate_output :: Integer -> Integer -> Double -> SymbolTable
-                -> [String] -> [Output] -> [Output]
-generate_output afreq it t symTable outVars outlist  
+                -> [OutputItem] -> [Output] -> [Output]
+generate_output afreq it t symTable outItems outlist  
   | mod it afreq /= 0  = outlist
   | otherwise          = new_out:outlist
 
     where
-      currentOutputList = grab_output_data outVars t it symTable
+      currentOutputList = grab_output_data outItems t it symTable
 
       new_out = Output { iteration  = it
                        , time       = t
@@ -248,15 +248,23 @@ generate_output afreq it t symTable outVars outlist
 -- | given a list of variable or molecule names, goes through the
 -- symbol table, grabs the current values associated with the variables,
 -- and returns them as a list
-grab_output_data :: [String] -> Double -> Integer -> SymbolTable -> [Double]
-grab_output_data vars aTime iter symbols = 
-  foldr (\x acc -> (get_val x aTime iter symbols):acc) [] vars
+grab_output_data :: [OutputItem] -> Double -> Integer -> SymbolTable 
+                 -> [Double]
+grab_output_data items aTime iter symbols = 
+  foldr (\x acc -> (get_val x aTime iter symbols):acc) [] items
 
   where
-    get_val x t it syms = case x of
-                            "TIME"      -> t
-                            "ITERATION" -> fromInteger it
-                            _           -> get_val_from_symbolTable x t syms
+    get_val x t it syms = 
+      case x of
+        Name n        -> get_string_value n t it syms
+        Expression e -> rpn_compute syms t e
+
+
+    get_string_value s t it syms = 
+      case s of
+        "TIME"      -> t
+        "ITERATION" -> fromInteger it
+        _           -> get_val_from_symbolTable s t syms
                                 
 
 

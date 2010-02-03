@@ -131,11 +131,21 @@ parse_output_specs = parse_output_list
 -- output file
 parse_output_list :: CharParser ModelState ()
 parse_output_list = join (updateState <$> insert_output_list
-                      <$> (brackets (commaSep parse_variable_name)))
+--                      <$> (brackets (commaSep parse_variable_name)))
+                      <$> (brackets (commaSep parse_output_item)))
+                 <?> "output list"
 
   where
-    insert_output_list :: [String] -> ModelState -> ModelState
+    insert_output_list :: [OutputItem] -> ModelState -> ModelState
     insert_output_list outDataList state = state { outputRequest = outDataList }
+
+
+
+-- | parse a single item in a output specifier list
+parse_output_item :: CharParser ModelState OutputItem
+parse_output_item = (Name <$> parse_variable_name)
+                 <|> (Expression <$> (braces parse_infix_to_rpn))
+                 <?> "output list item"
 
 
 

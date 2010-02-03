@@ -82,7 +82,7 @@ internal_rpn_compute (RpnStack xs)           = num
     evaluate ys (Time) = (Number defaultVar):ys
 
     -- extract variable name
-    evaluate ys (Variable x) = (Number defaultVar):ys
+    evaluate ys (Variable _) = (Number defaultVar):ys
 
     evaluate ys item = item:ys
 

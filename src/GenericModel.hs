@@ -30,6 +30,7 @@ module GenericModel ( defaultRateList
                     , ModelState(..)
                     , MoleculeMap
                     , Output(..)
+                    , OutputItem(..)
                     , Rate
                     , RateList
                     , Reaction(..)
@@ -59,6 +60,11 @@ import RpnData
 -- | A MoleculeMap keeps track of the current number of molecules
 type MoleculeMap = M.Map String Int
 
+
+-- | an OutputItem equals one output item and can be
+-- an arbitrary function of molecule counts, variables, and
+-- simulation time
+data OutputItem = Name String | Expression RpnStack
 
 
 -- | A VariableMap holds all definied variables and their 
@@ -222,9 +228,10 @@ data EventTriggerCombinator = AndCombinator | OrCombinator
 --
 --             changing the value of mol/var by <numerical expression>
 --
-data Event = Event { evtTrigger :: ([EventTriggerPrimitive], [EventTriggerCombinator])
-                   , evtActions :: [EventAction]
-                   }
+data Event = 
+  Event { evtTrigger :: ([EventTriggerPrimitive], [EventTriggerCombinator])
+        , evtActions :: [EventAction]
+        }
 
 
 
@@ -242,7 +249,7 @@ data ModelState = ModelState { molCount      :: MoleculeMap
                              , maxTime       :: Double
                              , outputBufferSize :: Integer
                              , outputFreq    :: Integer
-                             , outputRequest :: [String]
+                             , outputRequest :: [OutputItem]
                              , outputCache   :: [Output]
                              , outfileName   :: String
                              , variables     :: VariableMap

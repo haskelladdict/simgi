@@ -43,6 +43,7 @@ check_input (ModelState { molCount         = theMols
                         , outputFreq       = outFreq
                         , variables        = theVars
                         , events           = theEvents
+                        , outputRequest    = theOutput
                         }) 
   = check_molecules (M.keys theMols) (react_mols theReactions)
     >> check_positive_outfreq outFreq
@@ -53,6 +54,8 @@ check_input (ModelState { molCount         = theMols
          (extract_variable_names_from_rates theReactions) "reactions"
     >> check_variable_names defined_names
          (extract_variable_names_from_events theEvents) "events"
+    >> check_variable_names defined_names
+         (extract_variable_names_from_output theOutput) "output"
 
  where
   -- | extract all reaction participants
@@ -62,7 +65,35 @@ check_input (ModelState { molCount         = theMols
   -- | extract all definied names (molecules, variables, ...)
   defined_names = (M.keys theMols) ++ (M.keys theVars)
 
+ 
+-- | extract all variable and molecule names from the output
+-- specs. The way we deal with RpnStacks is a bit clunky
+-- (i.e. rewrapping it as a MathExpr) but that way we can
+-- re-use extract_variable_names.
+-- NOTE: the treatment of the TIME keyword is also a bit inconsistent
+-- with the rest of the input format since we presently allow
+-- TIME/ITERATION to appear without a expression statements which
+-- is not possible when defining variables, rates, ... . Hence,
+-- we require a separate String treatment.
+extract_variable_names_from_output :: [OutputItem] -> [String]
+extract_variable_names_from_output = foldr grab_items [] 
+  where
+    grab_items x acc = 
+      case x of
+        Name string      -> if is_keyword string 
+                              then acc
+                              else (string:acc)
+
+          where
+            is_keyword w = case w of
+                            "TIME"      -> True
+                            "ITERATION" -> True
+                            _           -> False
+
   
+        Expression stack -> (extract_variable_names [Function stack]) ++ acc
+
+
 
 -- | extract all molecules/variables appearing in reaction rate
 -- functions

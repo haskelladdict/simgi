@@ -25,5 +25,5 @@ end
 
 output
   [ITERATION, TIME, a, b, c]
-  outputFile = "reversible.dat"
+  outputFile = "reversible_bimol.dat"
 end

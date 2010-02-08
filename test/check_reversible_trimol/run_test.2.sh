@@ -11,24 +11,24 @@ simgi_exe="${1}"
 # create a global tempfile to collect the data
 globalFile=$(mktemp simgi.XXXXXXXXXXXXX)
 
-for ((counter=0; counter <= 100; counter++)); do
+for ((counter=0; counter <= 200; counter++)); do
 
   # provide a little "progressbar"
   printf "."
 
   # run and process
-  ${simgi_exe} -s ${counter} reversible_bimol.sgl >& /dev/null 
-  tail -n 400 reversible_bimol.dat | gawk ' { print $5}' | ../test_helpers/average >> ${globalFile} || return 1
+  ${simgi_exe} -s ${counter} reversible_trimol.2.sgl >& /dev/null 
+  tail -n 2000 reversible_trimol.2.dat | ../test_helpers/average >> ${globalFile} || return 1
 
   # unlink
-  rm -f reversible_bimol.dat || return 1
+  rm -f reversible_trimol.2.dat || return 1
   
 done
 
 # check if we're within the specs
-# the expected number of products is 430.643462709951
-# and we allow 0.5% tolerance
-../test_helpers/check_deviation ${globalFile} 430.643462709951 5e-3
+# the expected concentration is 2.1986e-05 mol
+# and we allow 0.05% relative deviation
+../test_helpers/check_deviation ${globalFile} 4.2482e-5 5e-4
 status=$?
 
 # brief output

@@ -6,9 +6,9 @@
 #
 
 # expected values of molecule counts
-a_expect=0.000000000000000
-b_expect=0.000000000000000
-c_expect=1000.000000000000000
+a_expect=0.0
+b_expect=0.0
+c_expect=1000.0
 
 # 
 simgi_exe="${1}"
@@ -22,20 +22,23 @@ for ((counter=0; counter <= 100; counter++)); do
   printf "."
 
   # run and process
-  ${simgi_exe} irreversible.1.sgl >& /dev/null 
+  ${simgi_exe} irreversible_bimol.1.sgl >& /dev/null 
 
-  a=$(tail -n 1 irreversible.1.dat | gawk ' { print $3 }')
-  b=$(tail -n 1 irreversible.1.dat | gawk ' { print $4 }')
-  c=$(tail -n 1 irreversible.1.dat | gawk ' { print $5 }')
+  a=$(tail -n 1 irreversible_bimol.1.dat | gawk ' { print $3 }')
+  b=$(tail -n 1 irreversible_bimol.1.dat | gawk ' { print $4 }')
+  c=$(tail -n 1 irreversible_bimol.1.dat | gawk ' { print $5 }')
 
-  if [[ ${a_expect} != ${a} || ${b_expect} != ${b} \
-        || ${c_expect} != ${c} ]];
+  result_a=$(echo "${a} == ${a_expect}" | bc)
+  result_b=$(echo "${b} == ${b_expect}" | bc)
+  result_c=$(echo "${c} == ${c_expect}" | bc)
+
+  if [[ ${result_a} == 0 || ${result_b} == 0 || ${result_c} == 0 ]];
   then
     status=1
   fi
 
   # unlink
-  rm -f irreversible.1.dat || return 1
+  rm -f irreversible_bimol.1.dat || return 1
   
 done
 

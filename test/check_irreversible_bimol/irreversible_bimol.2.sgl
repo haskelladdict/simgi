@@ -12,10 +12,10 @@ molecules
 end
 
 reactions
-  a + b -> c  | 1e6 |
+  b -> c  | 1e6 |
 end 
 
 output
-  outputFile = "irreversible.1.dat"
   [TIME, ITERATION, a, b, c]
+  outputFile = "irreversible_bimol.2.dat"
 end

@@ -6,9 +6,10 @@
 #
 
 # expected values of molecule counts
-a_expect=1000.000000000000000
-b_expect=0.000000000000000
-c_expect=1000.000000000000000
+a_expect=0.0
+b_expect=0.0
+c_expect=0.0
+d_expect=903.000000000000000
 
 # 
 simgi_exe="${1}"
@@ -22,23 +23,26 @@ for ((counter=0; counter <= 100; counter++)); do
   printf "."
 
   # run and process
-  ${simgi_exe} irreversible_bimol.2.sgl >& /dev/null 
+  ${simgi_exe} irreversible_trimol.2.sgl >& /dev/null 
 
-  a=$(tail -n 1 irreversible_bimol.2.dat | gawk ' { print $3 }')
-  b=$(tail -n 1 irreversible_bimol.2.dat | gawk ' { print $4 }')
-  c=$(tail -n 1 irreversible_bimol.2.dat | gawk ' { print $5 }')
+  a=$(tail -n 1 irreversible_trimol.2.dat | gawk ' { print $1 }')
+  b=$(tail -n 1 irreversible_trimol.2.dat | gawk ' { print $2 }')
+  c=$(tail -n 1 irreversible_trimol.2.dat | gawk ' { print $3 }')
+  d=$(tail -n 1 irreversible_trimol.2.dat | gawk ' { print $4 }')
 
   result_a=$(echo "${a} == ${a_expect}" | bc)
   result_b=$(echo "${b} == ${b_expect}" | bc)
   result_c=$(echo "${c} == ${c_expect}" | bc)
+  result_d=$(echo "${d} == ${d_expect}" | bc)
 
-  if [[ ${result_a} == 0 || ${result_b} == 0 || ${result_c} == 0 ]];
+  if [[ ${result_a} == 0 || ${result_b} == 0 || ${result_c} == 0 \
+        || ${result_d} == 0 ]];
   then
     status=1
   fi
 
   # unlink
-  rm -f irreversible_bimol.2.dat || return 1
+  rm -f irreversible_trimol.2.dat || return 1
   
 done
 
@@ -48,7 +52,7 @@ done
 if [[ ${status} == 0 ]]; then
   echo
   echo
-  echo "Congratulations - the irreversible reaction test 2 passed!"
+  echo "Congratulations - the irreversible reaction test 1 passed!"
   echo
   echo
 else

@@ -6,7 +6,7 @@ default: check
 .PHONY: check clean
 check:
 	@echo
-	@echo "****** Running reversible bimolecular reaction tests. ******"
+	@echo "****** Running reversible bimolecular reaction test ******"
 	@./run_test.sh $(SIMGI_PATH)
 	@echo
 	

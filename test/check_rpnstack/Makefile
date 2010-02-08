@@ -6,8 +6,8 @@ default: check
 
 .PHONY: check clean
 check:
-	ghc $(GHC_FLAGS_DEVEL) -i$(SRC_LOCATION) -i$(HELPER_LOCATION) \
-		--make RpnStackTest.hs
+	@ghc $(GHC_FLAGS_DEVEL) -i$(SRC_LOCATION) -i$(HELPER_LOCATION) \
+		--make RpnStackTest.hs &> /dev/null
 	@./RpnStackTest
 
 

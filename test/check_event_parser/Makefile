@@ -6,8 +6,8 @@ default: check
 .PHONY: check clean
 
 check:
-	ghc $(GHC_FLAGS_DEVEL) -i$(SRC_LOCATION) -i$(HELPER_LOCATION) \
-		--make EventParserTest.hs
+	@ghc $(GHC_FLAGS_DEVEL) -i$(SRC_LOCATION) -i$(HELPER_LOCATION) \
+		--make EventParserTest.hs >& /dev/null
 	@./EventParserTest
 
 

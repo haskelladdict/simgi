@@ -147,7 +147,7 @@ time_1 = 12.345
 
 -- | main test driver
 main :: IO ()
-main = putStrLn "\n\n\nTesting Input Parser"
+main = putStrLn "\n****** Testing Input Parser ******"
 
   -- check event parser
   >> (putStr $ color_string Cyan "\nEvent parse tests:\n")

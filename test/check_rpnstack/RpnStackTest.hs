@@ -126,7 +126,7 @@ time_1 = 12.345
 
 -- | main test driver
 main :: IO ()
-main = putStrLn "\n\n\nTesting RPN stack (parser/compute engine)"
+main = putStrLn "\n****** Testing RPN stack (parser/compute engine) ******"
 
   -- run simple tests
   >> (putStr $ color_string Cyan "\nSimple tests:\n")

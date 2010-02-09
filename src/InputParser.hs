@@ -196,7 +196,7 @@ parse_events = Event <$> (parse_trigger) <*> (reservedOp "=>" *> parse_actions)
 -- | parser for an event trigger
 parse_trigger :: CharParser ModelState 
                  ([EventTriggerPrimitive], [EventTriggerCombinator])
-parse_trigger = braces parse_trigger_expressions
+parse_trigger = lineToken parse_trigger_expressions
              <?> "event trigger block"
 
 
@@ -206,7 +206,7 @@ parse_trigger = braces parse_trigger_expressions
 parse_trigger_expressions :: CharParser ModelState 
                              ([EventTriggerPrimitive], [EventTriggerCombinator])
 parse_trigger_expressions = combine_it <$> parse_single_trigger_expression 
-                            <*> (many parse_boolean_trigger_expression)
+                            <*> (many $ try parse_boolean_trigger_expression)
                          <?> "event trigger"
   
   where
@@ -273,7 +273,7 @@ parse_relational =  try ( reservedOp ">=" >> pure (>=) )
 
 -- | parser for an event action
 parse_actions :: CharParser ModelState [EventAction]
-parse_actions = braces parse_action_expressions
+parse_actions = lineToken parse_action_expressions
             <?> "event action block"
 
 
@@ -289,7 +289,8 @@ parse_action_expressions =
 -- | parser for a single event action expression
 parse_single_action_expression :: CharParser ModelState EventAction
 parse_single_action_expression = EventAction <$> 
-  (molname) <*> (reservedOp "=" *> parse_function_expression)
+  (molname) <*> (reservedOp "=" *> ((try parse_constant_expression)
+                                <|> (braces parse_function_expression)))
                               <?> "single event action expression"
 
 
@@ -534,8 +535,6 @@ parse_rate_expression = (try (lineToken parse_constant_expression))
                         <|> (lineToken (braces parse_function_expression)) 
                      <?> "constant or function expression"
 
-  where
-    lineToken = between (symbol "|") (symbol "|") 
 
 
 -- | parser for a simple rate constant expression

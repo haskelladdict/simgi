@@ -31,6 +31,7 @@ module TokenParser ( module Control.Applicative
                    , float
                    , identifier
                    , integer
+                   , lineToken
                    , parens
                    , keywords
                    , lexer
@@ -126,6 +127,12 @@ lexer  = PT.makeTokenParser
                             ++ map fst builtinFunctions
                       } )
 
+
+
+-- | parser for parser sandwitched between line
+-- symbols '|'
+lineToken :: CharParser st a -> CharParser st a
+lineToken = between (symbol "|") (symbol "|") 
 
 
 -- | token parser for parenthesis

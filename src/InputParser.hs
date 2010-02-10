@@ -196,7 +196,8 @@ parse_events = Event <$> (parse_trigger) <*> (reservedOp "=>" *> parse_actions)
 -- | parser for an event trigger
 parse_trigger :: CharParser ModelState 
                  ([EventTriggerPrimitive], [EventTriggerCombinator])
-parse_trigger = lineToken parse_trigger_expressions
+parse_trigger = (try parse_trigger_expressions)
+                <|> (parens parse_trigger_expressions)
              <?> "event trigger block"
 
 
@@ -205,12 +206,36 @@ parse_trigger = lineToken parse_trigger_expressions
 -- | parse a list of trigger expressions
 parse_trigger_expressions :: CharParser ModelState 
                              ([EventTriggerPrimitive], [EventTriggerCombinator])
-parse_trigger_expressions = combine_it <$> parse_single_trigger_expression 
-                            <*> (many $ try parse_boolean_trigger_expression)
+parse_trigger_expressions = combine_it 
+                         <$> parse_opt_parenthesized_trigger_expression 
+                         <*> (many parse_boolean_trigger_expression)
                          <?> "event trigger"
   
   where
     combine_it e = foldr (\(x,y) (u,v) -> (x:u,y:v) ) ([e],[])
+
+
+
+-- | parse a single trigger expression prefixed with a && or ||
+parse_boolean_trigger_expression :: CharParser ModelState 
+                                    (EventTriggerPrimitive, EventTriggerCombinator)
+parse_boolean_trigger_expression = 
+  tuple_it <$> parse_boolean_combinator 
+           <*> parse_opt_parenthesized_trigger_expression
+           <?> "boolean trigger expression"
+
+  where
+    tuple_it a b = (b,a)
+
+
+
+-- | parse a single trigger expression that is either parenthesized or not
+parse_opt_parenthesized_trigger_expression :: CharParser ModelState
+                                              EventTriggerPrimitive
+parse_opt_parenthesized_trigger_expression = 
+  (try parse_single_trigger_expression) 
+  <|> (parens parse_single_trigger_expression)
+  <?> "optionally parenthesized trigger expression"
 
 
 
@@ -220,21 +245,6 @@ parse_single_trigger_expression =
   EventTriggerPrimitive <$> parse_infix_to_rpn <*> parse_relational
                         <*> parse_infix_to_rpn
                                <?> "single event trigger expression"
-
-
-
--- | parse a single trigger expression prefixed with a && or ||
-parse_boolean_trigger_expression :: CharParser ModelState 
-                                    (EventTriggerPrimitive, EventTriggerCombinator)
-parse_boolean_trigger_expression = 
-  tuple_it <$> parse_boolean_combinator <*> parse_single_trigger_expression
-                                <?> "boolean trigger expression"
-
-  where
-    tuple_it a b = (b,a)
-
-
-
 -- | parse a boolean combinator (&& or ||)
 parse_boolean_combinator :: CharParser ModelState EventTriggerCombinator
 parse_boolean_combinator = try parse_AND <|> parse_OR
@@ -273,7 +283,7 @@ parse_relational =  try ( reservedOp ">=" >> pure (>=) )
 
 -- | parser for an event action
 parse_actions :: CharParser ModelState [EventAction]
-parse_actions = lineToken parse_action_expressions
+parse_actions = brackets parse_action_expressions
             <?> "event action block"
 
 
@@ -281,7 +291,7 @@ parse_actions = lineToken parse_action_expressions
 -- | parser for a list of action expressions
 parse_action_expressions :: CharParser ModelState [EventAction]
 parse_action_expressions = 
-  parse_single_action_expression `sepEndBy` semi 
+  parse_single_action_expression `sepEndBy` comma
                        <?> "event action expression"
 
 

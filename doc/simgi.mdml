@@ -170,9 +170,10 @@ __Example:__
 
 Inside *statment blocks* simgi supports the use of the following 
 mathematical functions: 
-`sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, 
-sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, 
-erf, erfc, abs`.
+
+>  sqrt, exp, log, log2, log10, sin, cos, tan, asin, acos, atan, 
+>  sinh, cosh, tanh, asinh, acosh, atanh, acosh, atanh, 
+>  erf, erfc, abs.
 
 __Note 1:__ Depending on their numerical complexity, *run-time 
 statement blocks* incur a computational overhead 

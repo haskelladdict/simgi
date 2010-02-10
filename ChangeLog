@@ -1,3 +1,24 @@
+2010-02-10 Markus Dittrich <haskelladdict@users.sourceforge.net>
+
+      * 0.3 released
+      * many bugfixes (an important one relates to 3 way and
+	higher order reactions which we computed incorrectly
+	in version 0.2).
+      * another significant overhaul of SGL language specs which
+	are now much more streamlined. Main changes
+
+	- dropped "def" keyword from input block to simplify parser
+	- all SGL identifier that expect a Double/Integer literal
+	  now accept either parse-time or run-time statement blocks.
+	- the event definition block syntax is now much more
+	  consistent with the rest of the SGL
+	- the "outputFile" keyword has been moved to the output
+	  block
+       * simgi will now try to evaluate statement blocks while
+	 parsing in order to minimize the run-time overhead.
+       * added many more tests to the test suite.
+
+
 2009-12-01 Markus Dittrich <haskelladdict@users.sourceforge.net>
 
       * 0.2 released.

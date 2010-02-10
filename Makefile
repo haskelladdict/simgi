@@ -1,7 +1,7 @@
 # Copyright 2009 Markus Dittrich <haskelladdict@users.sourceforge.net>
 # Distributed under the terms of the GNU General Public License v3
 
-VERSION=0.2
+VERSION=0.3
 DESTDIR=
 prefix=/usr
 mandir=$(DESTDIR)$(prefix)/share/man/man1
@@ -51,4 +51,3 @@ doc:
 clean:
 	rm -f src/*.o src/*.hi src/simgi 
 	make -C test clean	
-	make -C doc clean

@@ -1,8 +1,8 @@
 Name:          simgi
-Version:       0.2
+Version:       0.3
 License:       GPL
 license-file:  COPYING
-copyright:     (C) 2009 Markus Dittrich
+copyright:     (C) 2009-2010 Markus Dittrich, NRBSC & CMU
 category:      Scientific Simulation
 Synopsis:      stochastic simulation engine
 Description:   simgi is a stochastic simulation engine to model

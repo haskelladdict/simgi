@@ -6,6 +6,7 @@ DESTDIR=
 prefix=/usr
 mandir=$(DESTDIR)$(prefix)/share/man/man1
 docdir=$(DESTDIR)$(prefix)/share/doc/simgi-$(VERSION)
+exampledir=$(DESTDIR)$(prefix)/share/simgi/examples
 htmldir=$(docdir)/html
 bindir=$(DESTDIR)$(prefix)/bin
 
@@ -37,10 +38,12 @@ install: simgi
 	install -d $(docdir)
 	install -d $(bindir)
 	install -d $(htmldir)
+	install -d $(exampledir)
 	install -m 0755 src/simgi $(bindir)/
 	install -m 0644 ChangeLog COPYING AUTHORS $(docdir)/
 	install -m 0644 doc/*.pdf $(docdir)/
 	install -m 0644 doc/*.html $(htmldir)/
+	install -m 0644 Models/*.sgl $(exampledir)/
 
 
 .PHONY: clean doc

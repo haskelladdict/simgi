@@ -16,7 +16,7 @@ cabal-version: >= 1.6
 extra-source-files: README
 
 Executable simgi
-  Build-Depends:  base >= 4, containers >= 0.1.0.0,
+  Build-Depends:  base >= 2 && < 5, containers >= 0.1.0.0,
                   parsec == 2.1.*, mtl >= 1.1.0.2, haskell98,
                   random >= 1.0.0.1, mersenne-random-pure64 >= 0.2
   ghc-options:    -O2

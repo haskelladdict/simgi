@@ -1,7 +1,10 @@
 {-# LANGUAGE ForeignFunctionInterface #-}
 {-----------------------------------------------------------------
  
-  (c) 2008-2009 Markus Dittrich 
+  (c) 2008-2009 Markus Dittrich,
+      National Resource for Biomedical Supercomputing &
+      Carnegie Mellon University
+ 
  
   This program is free software; you can redistribute it 
   and/or modify it under the terms of the GNU General Public 

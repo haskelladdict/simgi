@@ -131,10 +131,9 @@ start with *--* and ignore everything until the next newline. For example,
 
 ### Identifiers
 
-SGL identifiers follow the Haskell98 convention,
-i.e., they start with a lowercase letter followed by any
-number of lower or uppercase letters, digits, or underscore.
-Please note that identifiers can not be any of the keywords
+SGL identifiers have to start with a lower or uppercase letter 
+followed by any number of lower or uppercase letters, digits, or 
+underscores. Please note that identifiers can not be any of the keywords
 or mathematical functions available in simgi.
 
 

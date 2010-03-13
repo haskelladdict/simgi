@@ -178,9 +178,9 @@ check_positive_itercount iter =
 -- | make sure the user defined reaction rate function reference
 -- only existing molecule names
 check_variable_names :: [String] -> [String] -> String -> Either String Bool
-check_variable_names defMols rateMols checkType =
+check_variable_names defMols parsedMols checkType =
   let 
-    noMol = rateMols L.\\ defMols
+    noMol = (L.nub parsedMols) L.\\ defMols
   in
     case null noMol of
       True  -> Right True

@@ -1,7 +1,7 @@
 {-----------------------------------------------------------------
  
-  (c) 2009-2010 Markus Dittrich,
-      National Resource for Biomedical Supercomputing &
+  (c) 2009-2014 Markus Dittrich,
+      Pittsburgh Supercomputing Center &
       Carnegie Mellon University
  
  
@@ -38,7 +38,7 @@ import GenericModel
 
 -- | show version info
 show_version :: IO ()
-show_version = putStrLn "This is simgi v0.3 (c) 2009-2010 Markus Dittrich"
+show_version = putStrLn "This is simgi v0.3 (c) 2009-2014 Markus Dittrich"
 
 
 

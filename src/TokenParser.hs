@@ -63,6 +63,7 @@ import ExtraFunctions
 
 {- Definitions for Applicative Parsec instance -}
 
+{--
 -- | Applicative instance for Monad
 instance Applicative (GenParser s a) where
   pure  = return
@@ -75,7 +76,7 @@ instance Alternative (GenParser s a) where
   empty = mzero
   (<|>) = mplus
 
-
+--}
 
 {- set up the Token Parser -}
 
